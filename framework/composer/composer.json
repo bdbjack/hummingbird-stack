@@ -21,7 +21,8 @@
 		"giggsey/libphonenumber-for-php": "^7.2",
 		"openwall/phpass": "^0.5.0",
 		"phpmailer/phpmailer": "^6.0",
-		"twilio/sdk": "^5.14"
+		"twilio/sdk": "^5.14",
+		"wisembly/elephant.io": "^3.3"
 	},
 	"config":{
 		"secure-http":false

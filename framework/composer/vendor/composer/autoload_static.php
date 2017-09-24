@@ -13,11 +13,16 @@ class ComposerStaticInit809074213230fbb3a47eff1daaac2168
         ),
         'P' => 
         array (
+            'Psr\\Log\\' => 8,
             'PHPMailer\\PHPMailer\\' => 20,
         ),
         'G' => 
         array (
             'Giggsey\\Locale\\' => 15,
+        ),
+        'E' => 
+        array (
+            'ElephantIO\\' => 11,
         ),
     );
 
@@ -26,6 +31,10 @@ class ComposerStaticInit809074213230fbb3a47eff1daaac2168
         array (
             0 => __DIR__ . '/..' . '/twilio/sdk/Twilio',
         ),
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
         'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
@@ -33,6 +42,11 @@ class ComposerStaticInit809074213230fbb3a47eff1daaac2168
         'Giggsey\\Locale\\' => 
         array (
             0 => __DIR__ . '/..' . '/giggsey/locale/src',
+        ),
+        'ElephantIO\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/wisembly/elephant.io/src',
+            1 => __DIR__ . '/..' . '/wisembly/elephant.io/test',
         ),
     );
 

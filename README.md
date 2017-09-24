@@ -9,3 +9,4 @@ This framework uses the following libraries:
 - [PHPMailer](https://github.com/PHPMailer/PHPMailer)
 - [LibPhoneNumber for PHP](https://giggsey.com/libphonenumber/)
 - [RedBean for PHP](https://redbeanphp.com/index.php)
+- [Elephant.io](https://github.com/Wisembly/elephant.io)

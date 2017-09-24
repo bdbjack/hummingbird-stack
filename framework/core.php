@@ -14,6 +14,9 @@
 				'debug' => true,
 				'timezone' => 'UTC',
 			),
+			'authentication' => array(
+				'module' => '',
+			),
 			'newrelic' => array(
 				'enabled' => true,
 				'apmName' => '',
@@ -77,10 +80,6 @@
 			}
 			$this->returnMime = $this->getReturnMime();
 			date_default_timezone_set( $this->getConfigSetting( 'application', 'timezone' ) );
-			/**
-			 * Now we need to load all core framework files
-			 */
-			## First load the composer files, since they're required in some of the other stuff
 			$calf = sprintf( '%s/framework/composer/vendor/autoload.php', self::stripTrailingSlash( ABSPATH ) );
 			if ( ! file_exists( $calf ) ) {
 				throw new Exception( sprintf( 'Missing Core Framework Composer Autoloader File "%s"', self::obfuscateWebDirectory( $calf ) ), 1 );
@@ -89,7 +88,6 @@
 				array_push( $this->_loadedCoreFrameworkFiles, $calf );
 				require_once $calf;
 			}
-			## Load the framework files
 			$cffd = array( 'interfaces', 'adapters', 'abstracts', 'classes' );
 			foreach ( $cffd as $relativeDir ) {
 				$absDir = sprintf( '%s/framework/%s/', self::stripTrailingSlash( ABSPATH ), $relativeDir );
@@ -106,7 +104,53 @@
 					throw new Exception( sprintf( 'Missing Core Framework Directory "%s"', self::obfuscateWebDirectory( $absDir ) ), 1 );
 				}
 			}
+			## Load the core framework modules
+			$cfmd = scandir( sprintf( '%s/framework/modules/', self::stripTrailingSlash( ABSPATH ) ) );
+			$cfms = array();
+			if ( self::canLoop( $cfmd ) ) {
+				foreach ( $cfmd as $sd ) {
+					$abssd = sprintf( '%s/framework/modules/%s', self::stripTrailingSlash( ABSPATH ), $sd );
+					if ( '.' !== $sd && '..' !== $sd && file_exists( $abssd ) && is_dir( $abssd ) ) {
+						array_push( $cfms, $abssd );
+					}
+				}
+			}
+			if ( self::canLoop( $cfms ) ) {
+				foreach ( $cfms as $modulePath ) {
+					$files = $this->loadModuleFromPath( $modulePath );
+					if ( self::canLoop( $files ) ) {
+						foreach ( $files as $file ) {
+							array_push( $this->_loadedCoreFrameworkFiles, $file );
+						}
+					}
+				}
+			}
 			## Set Error handling function
+			$drcsvf = sprintf( '%s/framework/data/routes.csv', self::stripTrailingSlash( ABSPATH ) );
+			if ( file_exists( $drcsvf ) ) {
+				array_push( $this->_loadedCoreFrameworkFiles, $drcsvf );
+				$routes_csv = file_get_contents( $drcsvf );
+				$rows_csv = explode( "\n", $routes_csv );
+				if ( self::canLoop( $rows_csv ) ) {
+					$headerRow = array_shift( $rows_csv );
+					$keys = str_getcsv( $headerRow );
+					foreach ( $rows_csv as $row ) {
+						$array = str_getcsv( $row );
+						if ( count( $keys ) == count( $array ) ) {
+							$data = array_combine( $keys, $array );
+							$this->addRoute(
+								self::getArrayKey( 'method', $data ),
+								self::getArrayKey( 'pattern', $data ),
+								self::getArrayKey( 'action', $data ),
+								( 'TRUE' == self::getArrayKey( 'authRequired', $data ) ),
+								( 'TRUE' == self::getArrayKey( 'redirectAuthenticated', $data ) ),
+								self::getArrayKey( 'title', $data ),
+								true
+							);
+						}
+					}
+				}
+			}
 			/**
 			 * Now we need to load a list of all module files so we can load them as needed
 			 */
@@ -116,6 +160,79 @@
 			/**
 			 * Now we need to load all routes
 			 */
+			## Setup NewRelic APM Reporting
+		}
+
+		public function addAction( $key, $function, $priority = null ) {
+			if ( ! is_array( $this->actions ) ) {
+				$this->actions = array();
+			}
+			if ( ! array_key_exists( $key, $this->actions ) ) {
+				$this->actions[ $key ] = array();
+			}
+			if ( is_null( $priority ) ) {
+				array_push( $this->actions[ $key ], $function );
+			}
+			else {
+				$keyid = $priority;
+				while ( array_key_exists( $keyid, $this->actions[ $key ] ) ) {
+					$keyid ++;
+				}
+				$this->actions[ $key ][ $keyid ] = $function;
+			}
+		}
+
+		public function doAction( $action, $data = null, $params = 1 ) {
+			if ( ! is_array( $this->actions ) ) {
+				$this->actions = array();
+			}
+			if ( array_key_exists( $action, $this->actions ) && count( $this->actions[ $action ] ) > 0 ) {
+				if ( function_exists( 'newrelic_identify_action' ) ) {
+					newrelic_identify_action( $action );
+				}
+				ksort( $this->actions[ $action ], SORT_NUMERIC );
+				foreach ( $this->actions[ $action ] as $index => $function ) {
+					if (
+						( is_array( $function ) &&
+						class_exists( $function[0] ) &&
+						method_exists( $function[0], $function[1] )
+						) ||
+						function_exists( $function )
+					) {
+						if ( is_null( $data ) ) {
+							call_user_func( $function );
+						}
+						else if ( ! is_array( $data ) || $params > 1 ) {
+							call_user_func( $function, $data );
+						}
+						else {
+							call_user_func_array( $function, $data );
+						}
+					}
+				}
+			}
+		}
+
+		public function addRoute( $method, $pattern, $action, $authRequired, $redirectAuthenticated, $title, $overwrite = false ) {
+			if ( ! is_array( $this->routes ) ) {
+				$this->routes = array();
+			}
+			$method = strtoupper( $method );
+			if ( ! array_key_exists( $method, $this->routes ) || ! is_array( $this->routes[ $method ] ) ) {
+				$this->routes[ $method ] = array();
+			}
+			if ( ! array_key_exists( $pattern, $this->routes[ $method ] ) || true == $overwrite ) {
+				$this->routes[ $method ][ $pattern ] = array(
+					'action' => $action,
+					'authRequired' => ( true == $authRequired ),
+					'redirectAuthenticated' => ( true == $redirectAuthenticated ),
+					'title' => $title,
+				);
+			}
+			else {
+				return false;
+			}
+			return true;
 		}
 
 		##
@@ -125,6 +242,7 @@
 		public static function init( array $config = array() ) {
 			$c = get_called_class();
 			$obj = new $c( $config );
+			$obj->doAction( 'init' );
 			return $obj;
 		}
 
@@ -169,6 +287,31 @@
 		private function getConfigSetting( $section = '', $key = '' ) {
 			$s = $this->getConfigSection( $section );
 			return self::getArrayKey( $key, $s, null );
+		}
+
+		private function loadModuleFromPath( $modulePath ) {
+			$return = array();
+			if ( file_exists( $modulePath ) && is_dir( $modulePath ) ) {
+				$mfds = array( 'interfaces', 'adapters', 'data', 'abstracts', 'classes', 'functions' );
+				foreach ( $mfds as $reldir ) {
+					$abspath = sprintf( '%s/%s/', self::stripTrailingSlash( $modulePath ), self::stripTrailingSlash( $reldir ) );
+					try {
+						$df = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $abspath ), RecursiveIteratorIterator::SELF_FIRST );
+						foreach ( $df as $name => $chuff ) {
+							if ( substr( $name, -4 ) == '.php' && strpos( $name, 'index.php' ) === false ) {
+								array_push( $return, $name );
+								require_once $name;
+							}
+						}
+					}
+					catch ( Exception $e ) {}
+				}
+				$if = sprintf( '%s/instructions.php', self::stripTrailingSlash( $modulePath ) );
+				if ( file_exists( $if ) ) {
+					require_once $if;
+				}
+			}
+			return $return;
 		}
 
 		private function parseHttpMethodData( $method ) {

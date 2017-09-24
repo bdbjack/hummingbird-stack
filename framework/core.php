@@ -61,10 +61,16 @@
 			$this->requestInfo['_delete'] = $this->parseHttpMethodData( 'DELETE' );
 			$this->requestInfo['_headers'] = $this->parseHttpHeaders();
 			$this->requestInfo['_files'] = $_FILES;
-			$this->requestInfo['_cookies'] = $_COOKIES;
+			$this->requestInfo['_cookies'] = $_COOKIE;
 			$this->requestInfo['_cli'] = $this->parseCLIQuery();
-			$this->requestInfo['_session'] = ( true == $this->getConfigSetting( 'session', 'enabled' ) ) ? : $_SESSION : array();
-
+			$this->requestInfo['_session'] = ( true == $this->getConfigSetting( 'session', 'enabled' ) ) ? $_SESSION : array();
+			$this->absoluteURLBase = $this->getAbsoluteUrl();
+			if ( true == self::isCLI() ) {
+				$this->requestInfo['method'] = 'CLI';
+			}
+			else if ( array_key_exists( 'REQUEST_METHOD', $_SERVER ) ) {
+				$this->requestInfo['method'] = strtoupper( self::getArrayKey( 'REQUEST_METHOD', $_SERVER, 'GET' ) );
+			}
 			date_default_timezone_set( $this->getConfigSetting( 'application', 'timezone' ) );
 			## Set Error handling function
 
@@ -92,6 +98,16 @@
 
 		public static function isCLI() {
 			return ( 'cli' == php_sapi_name() );
+		}
+
+		public static function isEmpty( $var ) {
+			if ( is_object( $var ) ) {
+				return false;
+			}
+			if ( is_array( $var ) && self::canLoop( $var ) ) {
+				return false;
+			}
+			return ( empty( $var ) || is_null( $var ) || ( ! is_array( $var ) && ! is_object( $var ) && 0 == strlen( $var ) ) );
 		}
 
 		private function getConfigSection( $section = '' ) {
@@ -139,11 +155,11 @@
 			}
 			else if ( self::canLoop( $rows ) ) {
 				foreach ( $rows as $row ) {
-					if ( ! is_empty( $row ) ) {
+					if ( ! self::isEmpty( $row ) ) {
 						if ( false !== strpos( $row, "\r\n\r\n" ) ) {
 							list( $uglyname, $value ) = explode( "\r\n\r\n", $row );
 							list( $boundary, $info ) = explode( "\r\n", $uglyname );
-							if ( ! is_empty( $info ) && ! is_null( $value ) ) {
+							if ( ! self::isEmpty( $info ) && ! is_null( $value ) ) {
 								list( $chuff, $rawname ) = explode( 'name=', $info );
 								$name = str_replace( '"', '', $rawname );
 								$name = str_replace( "'", '', $name );
@@ -182,6 +198,41 @@
 			}
 			$vars = getopt( '', array( 'query:' ) );
 			return self::getArrayKey( 'query', $vars, array() );
+		}
+
+		private function getAbsoluteUrl( $path = '/', $query = array() ) {
+			$_headers = self::getArrayKey( '_headers', $this->requestInfo, array() );
+			$cf = self::getArrayKey( 'PHP_SELF', $_SERVER, self::getArrayKey( 'SCRIPT_NAME', $_SERVER, '/' ) );
+			$cf = str_replace( 'index.php', '', $cf );
+			$uri = self::getArrayKey( 'REQUEST_URI', $_SERVER, self::getArrayKey( 'REDIRECT_URL', $_SERVER, '/' ) );
+			if ( '/' !== $cf ) {
+				$cfl = strlen( $cf );
+				$uri = substr( $uri, 0, $cfl );
+			}
+			if ( '/' !== substr( $uri, 0, 1 ) ) {
+				$uri = '/' . $uri;
+			}
+			$return = '';
+			if ( 'https' == self::getArrayKey( 'X-Forwarded-Proto', $_headers, 'http' ) || 'on' == strtolower( self::getArrayKey( 'HTTPS', $_SERVER, 'off' ) ) ) {
+				$return .= 'https';
+			}
+			else {
+				$return .= 'http';
+			}
+			$return .= '://';
+			$return .= self::getArrayKey( 'HTTP_HOST', $_SERVER, 'localhost' );
+			$return .= $uri;
+			if ( '/' == substr( $return, -1 ) ) {
+				$return = substr( $return, 0, strlen( $return ) - 1 );
+			}
+			if ( '/' !== substr( $path, 0, 1 ) ) {
+				$path = '/' . $path;
+			}
+			$return .= $path;
+			if ( self::canLoop( $query ) ) {
+				$return .= '?' . http_build_query( $query );
+			}
+			return $return;
 		}
 
 		function __get( string $name ) {

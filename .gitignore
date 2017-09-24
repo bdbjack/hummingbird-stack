@@ -5,7 +5,8 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -42,3 +43,4 @@ sftp-config.json
 # hummingbird stack files
 config.php
 modules/
+.htaccess

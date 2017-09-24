@@ -29,7 +29,7 @@
 	##
 	# Load the core
 	##
-	$HC = new HC( $__hbs_config );
+	$HC = HC::init( $__hbs_config );
 
 	print_r( $HC );
 	exit();

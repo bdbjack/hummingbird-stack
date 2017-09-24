@@ -26,12 +26,14 @@
 			'memcache' => array(),
 			'memcached' => array(),
 			'redis' => array(),
+			'smtp' => array(),
+			'twilio' => array(),
 			'frameworkFiles' => array(),
 			'moduleFiles' => array(),
 		);
 		private $actions = array();
 		private $routes = array();
-		private $activeDatabases = array( 'default' );
+		private $activeDatabases = array();
 		private $requestInfo = array(
 			'method' => 'GET',
 			'_headers' => array(),
@@ -46,6 +48,8 @@
 			'_server' => array(),
 		);
 		private $absoluteURLBase = '';
+		private $returnMime = 'text/plain';
+		private $_loadedCoreFrameworkFiles = array();
 
 		function __construct( array $config = array() ) {
 			if ( self::canLoop( $config ) ) {
@@ -71,12 +75,38 @@
 			else if ( array_key_exists( 'REQUEST_METHOD', $_SERVER ) ) {
 				$this->requestInfo['method'] = strtoupper( self::getArrayKey( 'REQUEST_METHOD', $_SERVER, 'GET' ) );
 			}
+			$this->returnMime = $this->getReturnMime();
 			date_default_timezone_set( $this->getConfigSetting( 'application', 'timezone' ) );
-			## Set Error handling function
-
 			/**
 			 * Now we need to load all core framework files
 			 */
+			## First load the composer files, since they're required in some of the other stuff
+			$calf = sprintf( '%s/framework/composer/vendor/autoload.php', self::stripTrailingSlash( ABSPATH ) );
+			if ( ! file_exists( $calf ) ) {
+				throw new Exception( sprintf( 'Missing Core Framework Composer Autoloader File "%s"', self::obfuscateWebDirectory( $calf ) ), 1 );
+			}
+			else {
+				array_push( $this->_loadedCoreFrameworkFiles, $calf );
+				require_once $calf;
+			}
+			## Load the framework files
+			$cffd = array( 'interfaces', 'adapters', 'abstracts', 'classes' );
+			foreach ( $cffd as $relativeDir ) {
+				$absDir = sprintf( '%s/framework/%s/', self::stripTrailingSlash( ABSPATH ), $relativeDir );
+				try {
+					$df = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $absDir ), RecursiveIteratorIterator::SELF_FIRST );
+					foreach ( $df as $name => $chuff ) {
+						if ( substr( $name, -4 ) == '.php' && strpos( $name, 'index.php' ) === false ) {
+							array_push( $this->_loadedCoreFrameworkFiles, $name );
+							require_once $name;
+						}
+					}
+				}
+				catch ( Exception $e ) {
+					throw new Exception( sprintf( 'Missing Core Framework Directory "%s"', self::obfuscateWebDirectory( $absDir ) ), 1 );
+				}
+			}
+			## Set Error handling function
 			/**
 			 * Now we need to load a list of all module files so we can load them as needed
 			 */
@@ -86,6 +116,16 @@
 			/**
 			 * Now we need to load all routes
 			 */
+		}
+
+		##
+		# Loads the core and starts running the various "actions"
+		# We use the static version to do this so that if someone wants to load the framework but not start running the various associated actions, they can
+		##
+		public static function init( array $config = array() ) {
+			$c = get_called_class();
+			$obj = new $c( $config );
+			return $obj;
 		}
 
 		public static function canLoop( $data ) {
@@ -108,6 +148,18 @@
 				return false;
 			}
 			return ( empty( $var ) || is_null( $var ) || ( ! is_array( $var ) && ! is_object( $var ) && 0 == strlen( $var ) ) );
+		}
+
+		public static function stripTrailingSlash( $input ) {
+			if ( '/' == substr( $input, -1 ) ) {
+				$input = substr( $input, 0, strlen( $input ) - 1 );
+			}
+			return $input;
+		}
+
+		private static function obfuscateWebDirectory( $input ) {
+			$find = self::stripTrailingSlash( ABSPATH );
+			return str_replace( $find, '{ABSPATH}', $input );
 		}
 
 		private function getConfigSection( $section = '' ) {
@@ -231,6 +283,23 @@
 			$return .= $path;
 			if ( self::canLoop( $query ) ) {
 				$return .= '?' . http_build_query( $query );
+			}
+			return $return;
+		}
+
+		private function getReturnMime() {
+			$return = 'text/plain';
+			$headers = self::getArrayKey( '_headers', $this->requestInfo );
+			$accepted = self::getArrayKey( 'Accept', $headers, '*/*' );
+			if ( false == strpos( $accepted, ',' ) ) {
+				$mimes = array( $accepted );
+			}
+			else {
+				$mimes = explode( ',', $accepted );
+			}
+			$first = array_shift( $mimes );
+			if ( '*/*' !== trim( $first ) ) {
+				$return = strtolower( $first );
 			}
 			return $return;
 		}

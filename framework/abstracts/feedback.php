@@ -54,4 +54,17 @@
 			return $obj;
 		}
 
+		public static function DEBUG( $data, $message = null, array $errors = array(), int $status = 400, bool $output = false ) {
+			$c = get_called_class();
+			$obj = new $c;
+			$obj->status = 'DEBUG';
+			$obj->data = $data;
+			$obj->message = $message;
+			$obj->errors = $errors;
+			$obj->code = HC::absInt( $status );
+			if ( true == $output ) {
+				$obj->asOutput();
+			}
+			return $obj;
+		}
 	}

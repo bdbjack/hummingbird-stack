@@ -211,7 +211,7 @@
 					break;
 
 				case E_NOTICE:
-					$return = false;
+					$return = true;
 					$reportNewRelic = false;
 					break;
 
@@ -246,7 +246,7 @@
 					break;
 
 				case E_USER_NOTICE:
-					$return = false;
+					$return = true;
 					$reportNewRelic = false;
 					break;
 
@@ -342,13 +342,13 @@
 		}
 
 		public function getReturnDataTypeFromReturnMime() {
-			if ( true == $this->matchesPattern( $this->returnMime, 'json' ) ) {
+			if ( true == self::matchesPattern( $this->returnMime, 'json' ) ) {
 				return 'json';
 			}
-			if ( true == $this->matchesPattern( $this->returnMime, 'html' ) ) {
+			if ( true == self::matchesPattern( $this->returnMime, 'html' ) ) {
 				return 'html';
 			}
-			if ( true == $this->matchesPattern( $this->returnMime, 'xml' ) ) {
+			if ( true == self::matchesPattern( $this->returnMime, 'xml' ) ) {
 				return 'xml';
 			}
 			return 'plaintext';
@@ -512,7 +512,7 @@
 			return $input;
 		}
 
-		private static function obfuscateWebDirectory( $input ) {
+		public static function obfuscateWebDirectory( $input ) {
 			$find = self::stripTrailingSlash( ABSPATH );
 			return str_replace( $find, '{ABSPATH}', $input );
 		}
@@ -722,13 +722,9 @@
 			return null;
 		}
 
-		private function matchesPattern( $string, $pattern ) {
-			return ( $pattern == $string || intval( preg_match( $this->fixRoutePatternForRegex( $pattern ), $string, $matches ) ) > 0 );
-		}
-
 		private function getPassthroughDataFromPath( $path, $pattern ) {
 			$return = array();
-			$pat = $this->fixRoutePatternForRegex( $pattern );
+			$pat = self::fixRoutePatternForRegex( $pattern );
 			if ( intval( preg_match( $pat, $path, $matches ) ) > 0 ) {
 				array_shift( $matches );
 				$return = array_merge( $return, $matches );
@@ -736,7 +732,7 @@
 			return $return;
 		}
 
-		private function fixRoutePatternForRegex( $input ) {
+		private static function fixRoutePatternForRegex( $input ) {
 			$input = str_replace( '/', '\/', $input );
 			$input = sprintf( '/%s/', $input );
 			return $input;
@@ -767,14 +763,82 @@
 			);
 		}
 
+		private static function matchesPattern( $string, $pattern ) {
+			return ( $pattern == $string || intval( preg_match( self::fixRoutePatternForRegex( $pattern ), $string, $matches ) ) > 0 );
+		}
+
 		public static function debug( $input ) {
-			$fbc::FAILURE(
+			$_server = $_SERVER;
+			if ( function_exists( 'getallheaders' ) ) {
+				$headers = getallheaders();
+			}
+			else {
+				$headers = array();
+				foreach ( $_server as $key => $value ) {
+					if ( substr( strtoupper( $key ), 0, 5 ) == 'HTTP_' ) {
+						$key = substr( $key, 0, 5 );
+						$key = str_replace( '_', ' ', $key );
+						$key = ucwords( strtolower( $key ) );
+						$key = str_replace( ' ', '-', $key );
+						$headers[ $key ] = $value;
+					}
+				}
+			}
+			$mime = 'text/plain';
+			$accepted = self::getArrayKey( 'Accept', $headers, '*/*' );
+			if ( false == strpos( $accepted, ',' ) ) {
+				$mimes = array( $accepted );
+			}
+			else {
+				$mimes = explode( ',', $accepted );
+			}
+			$first = array_shift( $mimes );
+			if ( '*/*' !== trim( $first ) ) {
+				$mime = strtolower( $first );
+			}
+			$returnType = 'plaintext';
+			if ( true == self::matchesPattern( $mime, 'json' ) ) {
+				$returnType = 'json';
+			}
+			if ( true == self::matchesPattern( $mime, 'html' ) ) {
+				$returnType = 'html';
+			}
+			if ( true == self::matchesPattern( $mime, 'xml' ) ) {
+				$returnType = 'xml';
+			}
+			$fbc = sprintf( '%s_Feedback', ucwords( $returnType ) );
+			$fbc::DEBUG(
 				$input,
 				'Debug',
 				array(),
 				200,
 				true
 			);
+		}
+
+		public static function showFileContents( $file, $line = 0 ) {
+			$return = '';
+			if ( file_exists( $file ) ) {
+				$contents = file_get_contents( $file );
+				$lines = explode( "\n", $contents );
+				if ( self::canLoop( $lines ) ) {
+					if ( $line <= 0 ) {
+						$line = 0;
+					}
+					$start = $line - 6;
+					if ( $start <= 0 ) {
+						$start = 0;
+					}
+					$myLines = array_slice( $lines, $start, 13, true );
+					if ( self::canLoop( $myLines ) ) {
+						foreach ( $myLines as $index => $content ) {
+							$lineNumber = $index + 1;
+							$return .= '[' . $lineNumber . '] ' . str_replace( "\r", '', $content ) . "\r\n";
+						}
+					}
+				}
+			}
+			return $return;
 		}
 
 		function __get( string $name ) {

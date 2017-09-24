@@ -9,8 +9,55 @@
 				</div>
 				<div class="panel-body">
 					<p>Received the following error:</p>
-					<pre><?php echo $this->message; ?></pre>
+					<pre><?php echo $fbo->message; ?></pre>
+					<?php
+						if ( is_array( $fbo->data ) && array_key_exists( 'file', $fbo->data ) ) {
+					?>
+					<p>File:</p>
+					<pre><?php echo $fbo->data['file']; ?></pre>
+					<p>Line:</p>
+					<pre><?php echo $fbo->data['line']; ?></pre>
+					<?php
+						}
+					?>
 				</div>
+				<?php
+					$bt = debug_backtrace();
+					array_shift( $bt );
+					array_shift( $bt );
+					array_shift( $bt );
+					if ( HC::canLoop( $bt ) ) {
+				?>
+				<div class="table-responsive">
+					<table class="table table-bordered">
+						<tbody>
+						<?php
+						foreach ( $bt as $trace ) {
+				?>
+						<tr>
+							<th>File</th>
+							<th>Line</th>
+							<th>Class</th>
+							<th>Function</th>
+						</tr>
+						<tr>
+							<td><?php echo HC::obfuscateWebDirectory( HC::getArrayKey( 'file', $trace, 'NULL' ) ); ?></td>
+							<td><?php echo HC::absInt( HC::getArrayKey( 'line', $trace, 0 ) ); ?></td>
+							<td><?php echo HC::getArrayKey( 'class', $trace ); ?></td>
+							<td><?php echo HC::getArrayKey( 'function', $trace ); ?></td>
+						</tr>
+						<tr class="hidden-xs hidden-sm">
+							<td colspan="4"><pre style="overflow-x: auto;"><?php echo htmlentities( HC::showFileContents( HC::getArrayKey( 'file', $trace ), HC::getArrayKey( 'line', $trace ) ) ); ?></pre></td>
+						</tr>
+				<?php
+						}
+						?>
+						</tbody>
+					</table>
+				</div>
+				<?php
+					}
+				?>
 				<div class="panel-footer">
 					<p>For more information please contact the system administrator.</p>
 				</div>

@@ -40,3 +40,5 @@ Temporary Items
 sftp-config.json
 
 # hummingbird stack files
+config.php
+modules/

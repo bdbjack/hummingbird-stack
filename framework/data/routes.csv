@@ -1,6 +1,6 @@
 method,pattern,action,authRequired,redirectAuthenticated,title
-GET,^/(.*)$,404,FALSE,FALSE,Page Not Found
-POST,^/(.*)$,404,FALSE,FALSE,Page Not Found
-PUT,^/(.*)$,404,FALSE,FALSE,Page Not Found
-DELETE,^/(.*)$,404,FALSE,FALSE,Page Not Found
-CLI,^/(.*)$,404,FALSE,FALSE,Page Not Found
+GET,^/(.*)$,404,FALSE,FALSE,Unrecognized Request
+POST,^/(.*)$,404,FALSE,FALSE,Unrecognized Request
+PUT,^/(.*)$,404,FALSE,FALSE,Unrecognized Request
+DELETE,^/(.*)$,404,FALSE,FALSE,Unrecognized Request
+CLI,^/(.*)$,404,FALSE,FALSE,Unrecognized Request

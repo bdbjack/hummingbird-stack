@@ -20,6 +20,7 @@
 			'newrelic' => array(
 				'enabled' => true,
 				'apmName' => '',
+				'apmLicense' => '',
 			),
 			'session' => array(
 				'enabled' => false,
@@ -31,14 +32,13 @@
 			'redis' => array(),
 			'smtp' => array(),
 			'twilio' => array(),
-			'frameworkFiles' => array(),
-			'moduleFiles' => array(),
 		);
 		private $actions = array();
 		private $routes = array();
 		private $activeDatabases = array();
 		private $requestInfo = array(
 			'method' => 'GET',
+			'routePattern' => '',
 			'_headers' => array(),
 			'_get' => array(),
 			'_post' => array(),
@@ -104,7 +104,6 @@
 					throw new Exception( sprintf( 'Missing Core Framework Directory "%s"', self::obfuscateWebDirectory( $absDir ) ), 1 );
 				}
 			}
-			## Load the core framework modules
 			$cfmd = scandir( sprintf( '%s/framework/modules/', self::stripTrailingSlash( ABSPATH ) ) );
 			$cfms = array();
 			if ( self::canLoop( $cfmd ) ) {
@@ -125,7 +124,6 @@
 					}
 				}
 			}
-			## Set Error handling function
 			$drcsvf = sprintf( '%s/framework/data/routes.csv', self::stripTrailingSlash( ABSPATH ) );
 			if ( file_exists( $drcsvf ) ) {
 				array_push( $this->_loadedCoreFrameworkFiles, $drcsvf );
@@ -151,16 +149,188 @@
 					}
 				}
 			}
-			/**
-			 * Now we need to load a list of all module files so we can load them as needed
-			 */
-			/**
-			 * Now we need to load all actions
-			 */
-			/**
-			 * Now we need to load all routes
-			 */
-			## Setup NewRelic APM Reporting
+			$amdd = scandir( sprintf( '%s/modules/', self::stripTrailingSlash( ABSPATH ) ) );
+			$amds = array();
+			if ( self::canLoop( $amdd ) ) {
+				foreach ( $amdd as $sd ) {
+					$abssd = sprintf( '%s/modules/%s', self::stripTrailingSlash( ABSPATH ), $sd );
+					if ( '.' !== $sd && '..' !== $sd && file_exists( $abssd ) && is_dir( $abssd ) ) {
+						array_push( $amds, $abssd );
+					}
+				}
+			}
+			if ( self::canLoop( $amds ) ) {
+				foreach ( $amds as $modulePath ) {
+					$files = $this->loadModuleFromPath( $modulePath );
+					if ( self::canLoop( $files ) ) {
+						foreach ( $files as $file ) {
+							array_push( $this->_loadedCoreFrameworkFiles, $file );
+						}
+					}
+				}
+			}
+			$this->requestInfo['routePattern'] = $this->getCurrentRequestRoutePattern();
+			if ( $this->canUseNewRelic() ) {
+				if ( ! self::isEmpty( $this->getConfigSetting( 'newrelic', 'apmName' ) ) ) {
+					newrelic_set_appname( $this->getConfigSetting( 'newrelic', 'apmName' ) );
+				}
+				newrelic_background_job( $this->isCLI() );
+				newrelic_ignore_apdex( $this->isCLI() );
+				$nrtn = sprintf(
+					'%s %s',
+					self::getArrayKey( 'method', $this->requestInfo ),
+					self::getArrayKey( 'routePattern', $this->requestInfo )
+				);
+				newrelic_name_transaction( $nrtn );
+				if ( ! self::isEmpty( $this->getConfigSetting( 'newrelic', 'apmLicense' ) ) ) {
+					newrelic_start_transaction( $nrtn, $this->getConfigSetting( 'newrelic', 'apmLicense' ) );
+				}
+			}
+			set_error_handler( array( $this, 'handleSystemError' ) );
+			set_exception_handler( array( $this, 'handleSystemException' ) );
+		}
+
+		public function handleSystemError( int $errno , string $errstr, string $errfile, int $errline, array $errcontext ) {
+			$return = false;
+			$reportNewRelic = true;
+			switch ( $errno ) {
+				case E_ERROR:
+					$return = true;
+					$reportNewRelic = true;
+					break;
+
+				case E_WARNING:
+					$return = true;
+					$reportNewRelic = false;
+					break;
+
+				case E_PARSE:
+					$return = true;
+					$reportNewRelic = true;
+					break;
+
+				case E_NOTICE:
+					$return = false;
+					$reportNewRelic = false;
+					break;
+
+				case E_CORE_ERROR:
+					$return = true;
+					$reportNewRelic = true;
+					break;
+
+				case E_CORE_WARNING:
+					$return = true;
+					$reportNewRelic = false;
+					break;
+
+				case E_COMPILE_ERROR:
+					$return = true;
+					$reportNewRelic = true;
+					break;
+
+				case E_COMPILE_WARNING:
+					$return = true;
+					$reportNewRelic = false;
+					break;
+
+				case E_USER_ERROR:
+					$return = true;
+					$reportNewRelic = true;
+					break;
+
+				case E_USER_WARNING:
+					$return = true;
+					$reportNewRelic = false;
+					break;
+
+				case E_USER_NOTICE:
+					$return = false;
+					$reportNewRelic = false;
+					break;
+
+				case E_STRICT:
+					$return = true;
+					$reportNewRelic = true;
+					break;
+
+				case E_RECOVERABLE_ERROR:
+					$return = true;
+					$reportNewRelic = true;
+					break;
+
+				case E_DEPRECATED:
+					$return = true;
+					$reportNewRelic = false;
+					break;
+
+				case E_USER_DEPRECATED:
+					$return = true;
+					$reportNewRelic = false;
+					break;
+			}
+			if ( true == $return ) {
+				$returnType = $this->getReturnDataTypeFromReturnMime();
+				$feedbackClass = sprintf( '%s_Feedback', ucwords( $returnType ) );
+				if ( ! class_exists( $feedbackClass ) ) {
+					$return = false;
+				}
+				else {
+					call_user_func(
+						array( $feedbackClass, 'FAILURE' ),
+						array(
+							'msg' => $errstr,
+							'file' => self::obfuscateWebDirectory( $errfile ),
+							'line' => intval( $errline ),
+						),
+						$errstr,
+						array( $errstr ),
+						501
+					);
+				}
+			}
+			if ( true == $reportNewRelic && true == $this->canUseNewRelic() ) {
+				$ex = new Exception( $errstr, $errno );
+				newrelic_notice_error( $errstr, $ex );
+			}
+			return $return;
+		}
+
+		public function handleSystemException( $e ) {
+			$errno = E_ERROR;
+			$errstr = $e->getMessage();
+			$errfile = $e->getFile();
+			$errline = $e->getLine();
+			$return = true;
+			$returnType = $this->getReturnDataTypeFromReturnMime();
+			$feedbackClass = sprintf( '%s_Feedback', ucwords( $returnType ) );
+			if ( ! class_exists( $feedbackClass ) ) {
+				$return = false;
+			}
+			else {
+				call_user_func(
+					array( $feedbackClass, 'FAILURE' ),
+					array(
+						'msg' => $errstr,
+						'file' => self::obfuscateWebDirectory( $errfile ),
+						'line' => intval( $errline ),
+					),
+					$errstr,
+					array( $errstr ),
+					501
+				);
+			}
+			if ( true == $return && $this->canUseNewRelic() ) {
+				newrelic_notice_error( $errstr, $e );
+			}
+			return $return;
+		}
+
+		public function getConfigPHP() {
+			$config = $this->config;
+			$return = sprintf( '$config = %s;', var_export( $config, true ) );
+			$return = preg_replace( '/=> (\r\n|\r|\n)\s*/', '=> ', $return );
+			return $return;
 		}
 
 		public function addAction( $key, $function, $priority = null ) {
@@ -235,6 +405,22 @@
 			return true;
 		}
 
+		public function addDatabase( string $key, string $type = 'sqlite', string $host = '', int $port = 3306, string $name = '/tmp/dbfile.db', $user = null, $pass = null, $prefix = null, bool $frozen = false ) {
+			if ( ! array_key_exists( $this->config['databases'] ) ) {
+				$this->config['databases'][ $key ] = array(
+					'type' => $type,
+					'host' => $host,
+					'port' => $port,
+					'name' => $name,
+					'user' => $user,
+					'pass' => $pass,
+					'prefix' => $prefix,
+					'frozen' => ( true == $frozen ),
+				);
+			}
+			return false;
+		}
+
 		##
 		# Loads the core and starts running the various "actions"
 		# We use the static version to do this so that if someone wants to load the framework but not start running the various associated actions, they can
@@ -242,7 +428,22 @@
 		public static function init( array $config = array() ) {
 			$c = get_called_class();
 			$obj = new $c( $config );
+			/**
+			 * Load stuff that needs to be loaded before loading various external stuff
+			 */
 			$obj->doAction( 'init' );
+			/**
+			 * Load Databases
+			 */
+			$obj->doAction( 'initDatabases' );
+			/**
+			 * Handle Routing
+			 */
+			$obj->doAction( 'initRouting' );
+			/**
+			 * Handle Shutdown
+			 */
+			$obj->doAction( 'shutdown' );
 			return $obj;
 		}
 
@@ -430,6 +631,22 @@
 			return $return;
 		}
 
+		private function getCurrentRelativePath( $prefix = true ) {
+			$cf = self::getArrayKey( 'PHP_SELF', $_SERVER, self::getArrayKey( 'SCRIPT_NAME', $_SERVER, '/' ) );
+			$cf = str_replace( 'index.php', '', $cf );
+			$uri = self::getArrayKey( 'REQUEST_URI', $_SERVER, self::getArrayKey( 'REDIRECT_URL', $_SERVER, '/' ) );
+			if ( '/' !== $cf ) {
+				$cfl = strlen( $cf );
+				$uri = substr( $uri, $cfl );
+			}
+			if ( '/' !== substr( $uri, 0, 1 ) ) {
+				$uri = '/' . $uri;
+			}
+			$return = ( true == $prefix ) ? '.' : '';
+			$return .= $uri;
+			return $return;
+		}
+
 		private function getReturnMime() {
 			$return = 'text/plain';
 			$headers = self::getArrayKey( '_headers', $this->requestInfo );
@@ -445,6 +662,55 @@
 				$return = strtolower( $first );
 			}
 			return $return;
+		}
+
+		private function getCurrentRequestRoutePattern() {
+			$method = $this->requestInfo['method'];
+			$methodRoutes = self::getArrayKey( $method, $this->routes );
+			$path = $this->getCurrentRelativePath( false );
+			if ( array_key_exists( $path, $methodRoutes ) ) {
+				return $path;
+			}
+			else {
+				foreach ( $methodRoutes as $pattern => $info ) {
+					$pat = self::fixRoutePatternForRegex( $pattern );
+					if ( intval( preg_match( $pat, $path, $matches ) ) > 0 ) {
+						return $pattern;
+					}
+				}
+			}
+			$keys = array_keys( $methodRoutes );
+			if ( self::canLoop( $keys ) ) {
+				return array_shift( $keys );
+			}
+			return null;
+		}
+
+		private function matchesPattern( $string, $pattern ) {
+			return ( $pattern == $string || intval( preg_match( $this->fixRoutePatternForRegex( $pattern ), $string, $matches ) ) > 0 );
+		}
+
+		private function fixRoutePatternForRegex( $input ) {
+			$input = str_replace( '/', '\/', $input );
+			$input = sprintf( '/%s/', $input );
+			return $input;
+		}
+
+		private function getReturnDataTypeFromReturnMime() {
+			if ( true == matchesPattern( $this->returnMime, 'application\/json' ) ) {
+				return 'json';
+			}
+			if ( true == matchesPattern( $this->returnMime, 'text\/html' ) ) {
+				return 'html';
+			}
+			if ( true == matchesPattern( $this->returnMime, '\/xml' ) ) {
+				return 'xml';
+			}
+			return 'plaintext';
+		}
+
+		private function canUseNewRelic() {
+			return ( extension_loaded( 'newrelic' ) && $this->getConfigSetting( 'newrelic', 'enabled' ) );
 		}
 
 		function __get( string $name ) {

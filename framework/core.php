@@ -188,6 +188,7 @@
 			}
 			set_error_handler( array( $this, 'handleSystemError' ) );
 			set_exception_handler( array( $this, 'handleSystemException' ) );
+			$this->addAction( 'shutdown', array( $this, 'handleRoute' ) );
 		}
 
 		public function handleSystemError( int $errno , string $errstr, string $errfile, int $errline, array $errcontext ) {
@@ -269,6 +270,10 @@
 					$reportNewRelic = false;
 					break;
 			}
+			if ( true == $reportNewRelic && true == $this->canUseNewRelic() ) {
+				$ex = new Exception( $errstr, $errno );
+				newrelic_notice_error( $errstr, $ex );
+			}
 			if ( true == $return ) {
 				$returnType = $this->getReturnDataTypeFromReturnMime();
 				$feedbackClass = sprintf( '%s_Feedback', ucwords( $returnType ) );
@@ -285,13 +290,10 @@
 						),
 						$errstr,
 						array( $errstr ),
-						501
+						501,
+						true
 					);
 				}
-			}
-			if ( true == $reportNewRelic && true == $this->canUseNewRelic() ) {
-				$ex = new Exception( $errstr, $errno );
-				newrelic_notice_error( $errstr, $ex );
 			}
 			return $return;
 		}
@@ -308,6 +310,9 @@
 				$return = false;
 			}
 			else {
+				if ( $this->canUseNewRelic() ) {
+					newrelic_notice_error( $errstr, $e );
+				}
 				call_user_func(
 					array( $feedbackClass, 'FAILURE' ),
 					array(
@@ -317,11 +322,9 @@
 					),
 					$errstr,
 					array( $errstr ),
-					501
+					501,
+					true
 				);
-			}
-			if ( true == $return && $this->canUseNewRelic() ) {
-				newrelic_notice_error( $errstr, $e );
 			}
 			return $return;
 		}
@@ -331,6 +334,24 @@
 			$return = sprintf( '$config = %s;', var_export( $config, true ) );
 			$return = preg_replace( '/=> (\r\n|\r|\n)\s*/', '=> ', $return );
 			return $return;
+		}
+
+		public function getFeedbackClass() {
+			$returnType = $this->getReturnDataTypeFromReturnMime();
+			return sprintf( '%s_Feedback', ucwords( $returnType ) );
+		}
+
+		public function getReturnDataTypeFromReturnMime() {
+			if ( true == $this->matchesPattern( $this->returnMime, 'json' ) ) {
+				return 'json';
+			}
+			if ( true == $this->matchesPattern( $this->returnMime, 'html' ) ) {
+				return 'html';
+			}
+			if ( true == $this->matchesPattern( $this->returnMime, 'xml' ) ) {
+				return 'xml';
+			}
+			return 'plaintext';
 		}
 
 		public function addAction( $key, $function, $priority = null ) {
@@ -362,13 +383,17 @@
 				}
 				ksort( $this->actions[ $action ], SORT_NUMERIC );
 				foreach ( $this->actions[ $action ] as $index => $function ) {
-					if (
-						( is_array( $function ) &&
-						class_exists( $function[0] ) &&
-						method_exists( $function[0], $function[1] )
-						) ||
-						function_exists( $function )
-					) {
+					if ( is_array( $function ) ) {
+						list( $class, $method ) = $function;
+						$valid = (
+							( is_object( $class ) || class_exists( $class ) )
+							&& method_exists( $class, $method )
+						);
+					}
+					else {
+						$valid = function_exists( $function );
+					}
+					if ( true == $valid ) {
 						if ( is_null( $data ) ) {
 							call_user_func( $function );
 						}
@@ -467,6 +492,17 @@
 				return false;
 			}
 			return ( empty( $var ) || is_null( $var ) || ( ! is_array( $var ) && ! is_object( $var ) && 0 == strlen( $var ) ) );
+		}
+
+		public static function absInt( $input ) {
+			if ( ! is_numeric( $input ) || self::isEmpty( $input ) ) {
+				return 0;
+			}
+			$int = intval( $input );
+			if ( $int < 0 ) {
+				$int = $int * -1;
+			}
+			return $int;
 		}
 
 		public static function stripTrailingSlash( $input ) {
@@ -690,27 +726,55 @@
 			return ( $pattern == $string || intval( preg_match( $this->fixRoutePatternForRegex( $pattern ), $string, $matches ) ) > 0 );
 		}
 
+		private function getPassthroughDataFromPath( $path, $pattern ) {
+			$return = array();
+			$pat = $this->fixRoutePatternForRegex( $pattern );
+			if ( intval( preg_match( $pat, $path, $matches ) ) > 0 ) {
+				array_shift( $matches );
+				$return = array_merge( $return, $matches );
+			}
+			return $return;
+		}
+
 		private function fixRoutePatternForRegex( $input ) {
 			$input = str_replace( '/', '\/', $input );
 			$input = sprintf( '/%s/', $input );
 			return $input;
 		}
 
-		private function getReturnDataTypeFromReturnMime() {
-			if ( true == matchesPattern( $this->returnMime, 'application\/json' ) ) {
-				return 'json';
-			}
-			if ( true == matchesPattern( $this->returnMime, 'text\/html' ) ) {
-				return 'html';
-			}
-			if ( true == matchesPattern( $this->returnMime, '\/xml' ) ) {
-				return 'xml';
-			}
-			return 'plaintext';
-		}
-
 		private function canUseNewRelic() {
 			return ( extension_loaded( 'newrelic' ) && $this->getConfigSetting( 'newrelic', 'enabled' ) );
+		}
+
+		private function handleRoute() {
+			$fbc = $this->getFeedbackClass();
+			$routeInfo = self::getArrayKey( self::getArrayKey( 'routePattern', $this->requestInfo, '' ), self::getArrayKey( self::getArrayKey( 'method', $this->requestInfo, 'GET' ), $this->routes, array() ), array() );
+			$path = $this->getCurrentRelativePath( false );
+			$passthrough = $this->getPassthroughDataFromPath( $path, self::getArrayKey( 'routePattern', $this->requestInfo, '' ) );
+			$routeAction = sprintf( 'route_action_%s', self::getArrayKey( 'action', $routeInfo, '404' ) );
+			$ptd = array_merge( $routeInfo, array(
+				'fbc' => $fbc,
+				'pt' => $passthrough
+			) );
+			$this->doAction( $routeAction, $ptd );
+			$ptd['action'] = 'error';
+			$fbc::FAILURE(
+				$ptd,
+				( true == $this->getConfigSetting( 'application', 'debug' ) ) ? sprintf( 'Action "%s" not defined in any modules', $routeAction ) : 'No Such Action',
+				array(),
+				404,
+				true
+			);
+		}
+
+		public static function debug( $input ) {
+			$fbc::FAILURE(
+				$input,
+				'Debug',
+				array(),
+				200,
+				true
+			);
 		}
 
 		function __get( string $name ) {
@@ -738,9 +802,6 @@
 		}
 
 		function __toString() {
-			if ( true == $this->getConfigSetting( 'application', 'debug' ) ) {
-				return var_export( $this, true );
-			}
 			return $this->getConfigSetting( 'application', 'name' );
 		}
 

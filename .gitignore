@@ -44,3 +44,4 @@ sftp-config.json
 config.php
 modules/
 .htaccess
+templates/*

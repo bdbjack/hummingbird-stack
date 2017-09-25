@@ -5,7 +5,7 @@
 		<div class="col-xs-12">
 			<div class="panel panel-danger" style="margin-top: 50px;">
 				<div class="panel-heading">
-					<h4>Sample PHP Configuration File</h4>
+					<h4>DEBUG: Sample PHP Configuration File</h4>
 				</div>
 				<div class="panel-body">
 				<?php

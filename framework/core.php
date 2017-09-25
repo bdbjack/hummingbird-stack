@@ -526,6 +526,22 @@
 			return str_replace( $find, '{ABSPATH}', $input );
 		}
 
+		public static function getCurrentRelativePath( $prefix = true ) {
+			$cf = self::getArrayKey( 'PHP_SELF', $_SERVER, self::getArrayKey( 'SCRIPT_NAME', $_SERVER, '/' ) );
+			$cf = str_replace( 'index.php', '', $cf );
+			$uri = self::getArrayKey( 'REQUEST_URI', $_SERVER, self::getArrayKey( 'REDIRECT_URL', $_SERVER, '/' ) );
+			if ( '/' !== $cf ) {
+				$cfl = strlen( $cf );
+				$uri = substr( $uri, $cfl );
+			}
+			if ( '/' !== substr( $uri, 0, 1 ) ) {
+				$uri = '/' . $uri;
+			}
+			$return = ( true == $prefix ) ? '.' : '';
+			$return .= $uri;
+			return $return;
+		}
+
 		private function getConfigSection( $section = '' ) {
 			return self::getArrayKey( $section, $this->config, array() );
 		}
@@ -676,22 +692,6 @@
 			return $return;
 		}
 
-		private function getCurrentRelativePath( $prefix = true ) {
-			$cf = self::getArrayKey( 'PHP_SELF', $_SERVER, self::getArrayKey( 'SCRIPT_NAME', $_SERVER, '/' ) );
-			$cf = str_replace( 'index.php', '', $cf );
-			$uri = self::getArrayKey( 'REQUEST_URI', $_SERVER, self::getArrayKey( 'REDIRECT_URL', $_SERVER, '/' ) );
-			if ( '/' !== $cf ) {
-				$cfl = strlen( $cf );
-				$uri = substr( $uri, $cfl );
-			}
-			if ( '/' !== substr( $uri, 0, 1 ) ) {
-				$uri = '/' . $uri;
-			}
-			$return = ( true == $prefix ) ? '.' : '';
-			$return .= $uri;
-			return $return;
-		}
-
 		private function getReturnMime() {
 			$return = 'text/plain';
 			$headers = self::getArrayKey( '_headers', $this->requestInfo );
@@ -712,7 +712,7 @@
 		private function getCurrentRequestRoutePattern() {
 			$method = $this->requestInfo['method'];
 			$methodRoutes = self::getArrayKey( $method, $this->routes );
-			$path = $this->getCurrentRelativePath( false );
+			$path = self::getCurrentRelativePath( false );
 			if ( array_key_exists( $path, $methodRoutes ) ) {
 				return $path;
 			}
@@ -754,7 +754,7 @@
 		private function handleRoute() {
 			$fbc = $this->getFeedbackClass();
 			$routeInfo = self::getArrayKey( self::getArrayKey( 'routePattern', $this->requestInfo, '' ), self::getArrayKey( self::getArrayKey( 'method', $this->requestInfo, 'GET' ), $this->routes, array() ), array() );
-			$path = $this->getCurrentRelativePath( false );
+			$path = self::getCurrentRelativePath( false );
 			$passthrough = $this->getPassthroughDataFromPath( $path, self::getArrayKey( 'routePattern', $this->requestInfo, '' ) );
 			$routeAction = sprintf( 'route_action_%s', self::getArrayKey( 'action', $routeInfo, '404' ) );
 			$ptd = array_merge( $routeInfo, array(

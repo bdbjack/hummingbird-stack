@@ -20,7 +20,7 @@
 			return $this->pretty_print_xml( $xml );
 		}
 
-		private function array_to_xml( $data, &$xml ) {
+		private function array_to_xml( $data, &$xml, $id = null ) {
 			if ( HC::canLoop( $data ) ) {
 				foreach ( $data as $key => $value ) {
 					if ( is_numeric( $key ) ) {
@@ -31,7 +31,15 @@
 						$this->array_to_xml( $value, $subnode );
 					}
 					else {
-						$xml->addChild( $key, htmlspecialchars( $value ) );
+						if ( false !== strpos( $key, 'item_' ) ) {
+							$itemId = str_replace( 'item_', '', $key );
+							$key = 'item';
+							$child = $xml->addChild( $key, htmlspecialchars( $value ) );
+							$child->addAttribute( 'id', $itemId );
+						}
+						else {
+							$child = $xml->addChild( $key, htmlspecialchars( $value ) );
+						}
 					}
 				}
 			}

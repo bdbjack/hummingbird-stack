@@ -36,7 +36,7 @@ All of the folders and files listed above are optional, but if you want to plug 
 The default system actions which are called are:
 
 - `init`: Used to load more functionality into the system.
-- `initDatabases`: Used to initialize databases.
+- `initDatabases`: Used to initialize databases. Databases should be added here.
 - `initRouting`: Used to initialize routing. This is where we can add or change routes.
 - `shutdown`: Used during rendering results.
 

@@ -2,7 +2,7 @@
 	defined( 'ABSPATH' ) || die( 'Sorry, but you cannot access this page directly.' );
 
 	function init_redbean() {
-		global $__hcc_obj;
+		global $__hcc_obj, $__sys_default_db_prefix;
 		$databases = __redbean_get_app_databases();
 		foreach ( $databases as $key => $dbi ) {
 			if ( 'default' == $key ) {
@@ -10,21 +10,45 @@
 					$res = R::setup( HC::getArrayKey( 'upn', $dbi, 'sqlite:/tmp/tmp.db' ), HC::getArrayKey( 'user', $dbi ), HC::getArrayKey( 'pass', $dbi ), ( true == HC::getArrayKey( 'frozen', $dbi, false ) ) );
 					if ( is_a( $res, 'RedBeanPHP\ToolBox' ) ) {
 						$__hcc_obj->addActiveDb( 'default', HC::getArrayKey( 'prefix', $dbi, '' ) );
+						$__sys_default_db_prefix = HC::getArrayKey( 'prefix', $dbi, '' );
 					}
+					$rbh = new HBSBeanHelper;
+					$redbean = R::getRedBean();
+					if ( is_object( $redbean ) ) {
+						$redbean->setBeanHelper( $rbh );
+					}
+					R::ext( 'sysDispense', 'db_dispense' );
+					R::ext( 'sysDispenseAll', 'db_dispense_all' );
+					R::ext( 'sysLoad', 'db_load' );
+					R::ext( 'sysLoadAll', 'db_load_all' );
+					R::ext( 'sysFind', 'db_find' );
+					R::ext( 'sysFindOne', 'db_find_one' );
+					R::ext( 'sysFindAll', 'db_find_all' );
+					R::ext( 'sysCount', 'db_count' );
+					R::ext( 'sysWipe', 'db_wipe' );
 				}
 				catch ( Exception $e ) {
 					trigger_error( sprintf( 'Could not initiate default database: %s', $e->getMessage() ) );
 				}
 			}
 			else {
-
+				if ( ! $__hcc_obj->databaseIsActive( $key ) ) {
+					try {
+						$res = R::addDatabase( $key,  HC::getArrayKey( 'upn', $dbi, 'sqlite:/tmp/tmp.db' ), HC::getArrayKey( 'user', $dbi ), HC::getArrayKey( 'pass', $dbi ), ( true == HC::getArrayKey( 'frozen', $dbi, false ) ) );
+						$__hcc_obj->addActiveDb( $key, HC::getArrayKey( 'prefix', $dbi, '' ) );
+					}
+					catch ( Exception $e ) {
+						trigger_error( sprintf( 'Could not initiate default database: %s', $e->getMessage() ) );
+					}
+				}
 			}
 		}
-		//HC::debug( $databases );
+		R::selectDatabase( 'default' );
+		HC::debug( $__hcc_obj );
 	}
 
 	function __redbean_get_app_databases() {
-		$dbs = HC::getConfigSection( 'databases' );
+		$dbs = HC::getStaticConfigSection( 'databases' );
 		if ( ! HC::canLoop( $dbs ) ) {
 			$dbs = array(
 				'default' => array(
@@ -138,4 +162,9 @@
 			}
 		}
 		return implode( ',', $nl );
+	}
+
+	function get_db_pref() {
+		global $__sys_default_db_prefix;
+		return $__sys_default_db_prefix;
 	}

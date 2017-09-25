@@ -47,7 +47,7 @@
 							<td><?php echo HC::getArrayKey( 'function', $trace ); ?></td>
 						</tr>
 						<tr class="hidden-xs hidden-sm">
-							<td colspan="4"><pre style="overflow-x: auto;"><?php echo htmlentities( HC::showFileContents( HC::getArrayKey( 'file', $trace ), HC::getArrayKey( 'line', $trace ) ) ); ?></pre></td>
+							<td colspan="4"><pre><?php echo HC::showFileContents( HC::getArrayKey( 'file', $trace ), HC::getArrayKey( 'line', $trace ) ); ?></pre></td>
 						</tr>
 				<?php
 						}

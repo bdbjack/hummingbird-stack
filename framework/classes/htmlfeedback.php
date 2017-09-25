@@ -36,4 +36,18 @@
 			}
 			return false;
 		}
+
+		private function getHTMLTitle() {
+			if ( ! HC::isEmpty( HC::getStaticConfigSetting( 'application', 'name' ) ) ) {
+				$title = sprintf(
+					'%s | %s',
+					$this->message,
+					HC::getStaticConfigSetting( 'application', 'name' )
+				);
+			}
+			else {
+				$title = $this->message;
+			}
+			return trim( $title );
+		}
 	}

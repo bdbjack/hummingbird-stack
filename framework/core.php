@@ -189,6 +189,15 @@
 			set_error_handler( array( $this, 'handleSystemError' ) );
 			set_exception_handler( array( $this, 'handleSystemException' ) );
 			$this->addAction( 'shutdown', array( $this, 'handleRoute' ) );
+			if ( ! defined( 'HCCONFIG' ) ) {
+				define( 'HCCONFIG', serialize( $this->config ) );
+			}
+			if ( ! defined( 'HCREQUESTINFO' ) ) {
+				define( 'HCREQUESTINFO', serialize( $this->requestInfo ) );
+			}
+			if ( ! defined( 'HCFFEEDBACKHANDLER' ) ) {
+				define( 'HCFFEEDBACKHANDLER', $this->getFeedbackClass() );
+			}
 		}
 
 		public function handleSystemError( int $errno , string $errstr, string $errfile, int $errline, array $errcontext ) {
@@ -752,7 +761,7 @@
 				'fbc' => $fbc,
 				'pt' => $passthrough
 			) );
-			$this->doAction( $routeAction, $ptd );
+			$this->doAction( $routeAction, array( $ptd ) );
 			$ptd['action'] = 'error';
 			$fbc::FAILURE(
 				$ptd,
@@ -839,6 +848,27 @@
 				}
 			}
 			return $return;
+		}
+
+		public static function getStaticConfigSection( $section = '' ) {
+			if ( ! defined( 'HCCONFIG' ) ) {
+				return array();
+			}
+			$config = unserialize( HCCONFIG );
+			return self::getArrayKey( $section, $config, array() );
+		}
+
+		public static function getStaticConfigSetting( $section = '', $key = '' ) {
+			$section = self::getStaticConfigSection( $section );
+			return self::getArrayKey( $key, $section );
+		}
+
+		public static function getFeedbackHandlerClass() {
+			return ( defined( 'HCFFEEDBACKHANDLER' ) ) ? HCFFEEDBACKHANDLER : 'Plaintext_Feedback';
+		}
+
+		public static function getHTTPRequestInfo() {
+			return ( defined( 'HCREQUESTINFO' ) ) ? unserialize( HCREQUESTINFO ) : array();
 		}
 
 		function __get( string $name ) {

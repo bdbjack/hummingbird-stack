@@ -15,6 +15,8 @@ This framework uses the following libraries:
 The hummingbird stack framework is best used as a GIT fork, so you can pull down from the master repository whenever you want the most up-to-date code.
 For a more in-depth tutorial for how to do that, simply visit [Github's Guide on Forking](https://help.github.com/articles/fork-a-repo/)
 
+**NOTE** You will want to update the `.gitignore` file to match your own project!
+
 ## How it Works
 In order to allow for fast and flexible development, the Hummingbird stack loads all modules inside of a "Core" class ( called HC ). From there, you can add and exection action hooks ( just like in WordPress development ), which allows us to ensure that all of the relevant code is loaded before we try to execute it.
 

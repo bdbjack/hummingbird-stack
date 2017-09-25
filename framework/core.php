@@ -169,26 +169,10 @@
 					}
 				}
 			}
-			$this->requestInfo['routePattern'] = $this->getCurrentRequestRoutePattern();
-			if ( $this->canUseNewRelic() ) {
-				if ( ! self::isEmpty( $this->getConfigSetting( 'newrelic', 'apmName' ) ) ) {
-					newrelic_set_appname( $this->getConfigSetting( 'newrelic', 'apmName' ) );
-				}
-				newrelic_background_job( $this->isCLI() );
-				newrelic_ignore_apdex( $this->isCLI() );
-				$nrtn = sprintf(
-					'%s %s',
-					self::getArrayKey( 'method', $this->requestInfo ),
-					self::getArrayKey( 'routePattern', $this->requestInfo )
-				);
-				newrelic_name_transaction( $nrtn );
-				if ( ! self::isEmpty( $this->getConfigSetting( 'newrelic', 'apmLicense' ) ) ) {
-					newrelic_start_transaction( $nrtn, $this->getConfigSetting( 'newrelic', 'apmLicense' ) );
-				}
-			}
+			$this->addAction( 'initRouting', array( $this, 'preInitRouting' ), 10000 );
 			set_error_handler( array( $this, 'handleSystemError' ) );
 			set_exception_handler( array( $this, 'handleSystemException' ) );
-			$this->addAction( 'shutdown', array( $this, 'handleRoute' ) );
+			$this->addAction( 'shutdown', array( $this, 'handleRoute' ), 10000 );
 			if ( ! defined( 'HCCONFIG' ) ) {
 				define( 'HCCONFIG', serialize( $this->config ) );
 			}
@@ -383,6 +367,8 @@
 		}
 
 		public function doAction( $action, $data = null, $params = 1 ) {
+			global $__hcc_obj;
+			$__hcc_obj = $this;
 			if ( ! is_array( $this->actions ) ) {
 				$this->actions = array();
 			}
@@ -432,6 +418,7 @@
 					'redirectAuthenticated' => ( true == $redirectAuthenticated ),
 					'title' => $title,
 				);
+				uksort( $this->routes[ $method ], array( get_called_class(), 'sortRoutesByKey' ) );
 			}
 			else {
 				return false;
@@ -453,6 +440,40 @@
 				);
 			}
 			return false;
+		}
+
+		public function databaseIsActive( $key ) {
+			return array_key_exists( $key, $this->activeDatabases );
+		}
+
+		public function addActiveDb( $key, $prefix ) {
+			if ( ! $this->databaseIsActive( $key ) ) {
+				$this->activeDatabases[ $key ] = $prefix;
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		public function preInitRouting() {
+			$this->requestInfo['routePattern'] = $this->getCurrentRequestRoutePattern();
+			if ( $this->canUseNewRelic() ) {
+				if ( ! self::isEmpty( $this->getConfigSetting( 'newrelic', 'apmName' ) ) ) {
+					newrelic_set_appname( $this->getConfigSetting( 'newrelic', 'apmName' ) );
+				}
+				newrelic_background_job( $this->isCLI() );
+				newrelic_ignore_apdex( $this->isCLI() );
+				$nrtn = sprintf(
+					'%s %s',
+					self::getArrayKey( 'method', $this->requestInfo ),
+					self::getArrayKey( 'routePattern', $this->requestInfo )
+				);
+				newrelic_name_transaction( $nrtn );
+				if ( ! self::isEmpty( $this->getConfigSetting( 'newrelic', 'apmLicense' ) ) ) {
+					newrelic_start_transaction( $nrtn, $this->getConfigSetting( 'newrelic', 'apmLicense' ) );
+				}
+			}
 		}
 
 		##
@@ -774,6 +795,25 @@
 
 		private static function matchesPattern( $string, $pattern ) {
 			return ( $pattern == $string || intval( preg_match( self::fixRoutePatternForRegex( $pattern ), $string, $matches ) ) > 0 );
+		}
+
+		private static function sortRoutesByKey( $a, $b ) {
+			if ( $a == $b ) {
+				return 0;
+			}
+			if ( self::patternIsExactMatch( $a ) && ! self::patternIsExactMatch( $b ) ) {
+				return 1;
+			}
+			else if ( ! self::patternIsExactMatch( $a ) && self::patternIsExactMatch( $b ) ) {
+				return -1;
+			}
+			else {
+				return ( strlen( $a ) < strlen( $b ) ) ? -1 : 1;
+			}
+		}
+
+		private static function patternIsExactMatch( $pattern ) {
+			return ! ( preg_match("/^\/.+\/[a-z]*$/i", $pattern ) );
 		}
 
 		public static function debug( $input ) {

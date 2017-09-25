@@ -42,6 +42,6 @@ sftp-config.json
 
 # hummingbird stack files
 config.php
-modules/
+/modules/
 .htaccess
-resources/
+/resources/

@@ -1,0 +1,30 @@
+{
+	"name": "hummingbird/hummingbird-stack",
+	"description": "Hummingbird Stack",
+	"repositories": [
+    {
+        "type": "package",
+        "package": {
+            "name": "openwall/phpass",
+            "version": "0.5",
+            "dist": {
+                "url": "http://www.openwall.com/phpass/phpass-0.5.tar.gz",
+                "type": "tar"
+            },
+            "autoload": {
+                "classmap": ["PasswordHash.php"]
+            }
+        }
+    }
+    ],
+	"require": {
+		"giggsey/libphonenumber-for-php": "^7.2",
+		"openwall/phpass": "^0.5.0",
+		"phpmailer/phpmailer": "^6.0",
+		"twilio/sdk": "^5.14",
+		"wisembly/elephant.io": "^3.3"
+	},
+	"config":{
+		"secure-http":false
+	}
+}

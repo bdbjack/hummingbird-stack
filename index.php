@@ -14,6 +14,7 @@
 				'license' => '',
 			),
 		) );
+		$hba->run();
 		echo '<pre>';
 		print_r( $hba );
 		echo '</pre>';

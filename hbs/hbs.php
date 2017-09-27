@@ -63,8 +63,16 @@
 			$this->_config = array_replace_recursive( $this->_config, $config );
 		}
 
-		public function addAction() {
-
+		public function addAction( $key, $function, $priority = 100, $passApp = true ) {
+			if ( ! array_key_exists( $key, $this->_actions ) ) {
+				$this->_actions[ $key ] = array();
+			}
+			array_push( $this->_actions[ $key ], array(
+				'function' => $function,
+				'priority' => $priority,
+				'passApp' => ( true == $passApp ),
+			) );
+			usort( $this->_actions[ $key ], array( get_called_class(), '_hba_sort_actions_by_priority' ) );
 		}
 
 		public function addRoute() {
@@ -80,7 +88,7 @@
 		}
 
 		public function run() {
-
+			$this->doAction( 'init' );
 		}
 
 		public function setBaseDir( $dir ) {
@@ -90,7 +98,41 @@
 		}
 
 		private function doAction( $key ) {
-
+			if (
+				array_key_exists( $key, $this->_actions )
+				&& is_array( $this->_actions[ $key ] )
+			) {
+				$args = func_get_args();
+				if ( is_array( $args ) && count( $args ) > 1 ) {
+					array_shift( $args );
+				}
+				else {
+					$args = array();
+				}
+				foreach ( $this->_actions[ $key ] as $action ) {
+					$function = ( is_array( $action ) && array_key_exists( 'function', $action ) ) ? $action['function'] : '';
+					$passApp = ( is_array( $action ) && array_key_exists( 'passApp', $action ) ) ? $action['passApp'] : false;
+					$exists = false;
+					if ( is_array( $function ) ) {
+						list( $class, $method ) = $function;
+						if ( ( is_object( $class ) || class_exists( $class ) ) && method_exists( $class, $method ) ) {
+							$exists = true;
+						}
+					}
+					else {
+						if ( function_exists( $function ) ) {
+							$exists = true;
+						}
+					}
+					if ( true == $exists ) {
+						if ( true == $passApp ) {
+							array_unshift( $args, $this );
+						}
+						call_user_func_array( $function, $args );
+					}
+				}
+			}
+			return true;
 		}
 
 		private function getExistingAbsoluteDirOfFile( $relativePath = '/', $directory = false ) {
@@ -105,7 +147,11 @@
 		}
 
 		private function getAbsoluteDirOfFile( $relativePath = '/' ) {
-			return sprintf( '%s/%s', $this->hummbingbirdBaseDir, self::_hba_strip_leading_slash( $relativePath ) );
+			return sprintf(
+				'%s/%s',
+				$this->hummbingbirdBaseDir,
+				self::_hba_strip_leading_slash( $relativePath )
+			);
 		}
 
 		private function loadComposer() {
@@ -129,6 +175,15 @@
 				$input = substr( $input, 1 );
 			}
 			return $input;
+		}
+
+		private static function _hba_sort_actions_by_priority( $a, $b ) {
+			$pa = ( is_array( $a ) && array_key_exists( 'priority', $a ) ) ? floatval( $a['priority'] ) : 100;
+			$pb = ( is_array( $b ) && array_key_exists( 'priority', $b ) ) ? floatval( $b['priority'] ) : 100;
+			if ( $pa == $pb ) {
+				return 0;
+			}
+			return ( $pa < $pb ) ? -1 : 1;
 		}
 
 		public static function CheckRequirements( $loaded = false ) {
@@ -184,5 +239,12 @@
 				}
 			}
 			return $return;
+		}
+
+		public static function EchoTest() {
+			$args = func_get_args();
+			echo '<pre>';
+			print_r( $args );
+			echo '</pre>';
 		}
 	}

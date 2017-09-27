@@ -24,6 +24,7 @@
 		private $_databases = array();
 		private $_caches = array();
 		private $__hbs_loaded_files = array();
+		private $__hbs_loaded_functions = array();
 
 		/**
 		 * Initializes the application by loading all of the relevant files from the subdirectories
@@ -79,6 +80,7 @@
 							$funct
 						);
 						eval( $toEval );
+						$this->__hbs_loaded_functions[ $rf ] = $funct;
 					}
 				}
 			}

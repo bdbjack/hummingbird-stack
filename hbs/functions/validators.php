@@ -3,6 +3,10 @@
 		return ( is_array( $data ) && count( $data ) > 0 );
 	}
 
+	function __hba_is_loopable( $data ) {
+		return ( is_array( $data ) && count( $data ) > 0 );
+	}
+
 	function __hba_is_associative_array( $array ) {
 		if ( ! is_array( $array ) ) {
 			return false;
@@ -29,6 +33,14 @@
 	}
 
 	function __hba_ending_matches( $end, $match ) {
+		return ( $end == substr( $match, ( -1 * strlen( $end ) ) ) );
+	}
+
+	function __hba_is_beginning_matches( $beginning, $match ) {
+		return ( $beginning == substr( $match, 0, strlen( $beginning ) ) );
+	}
+
+	function __hba_is_ending_matches( $end, $match ) {
 		return ( $end == substr( $match, ( -1 * strlen( $end ) ) ) );
 	}
 

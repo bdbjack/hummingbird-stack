@@ -16,7 +16,6 @@
 		private $hummbingbirdBaseDir = '';
 		private $baseUri = '';
 		private $baseUrl = '';
-		private $_request = array();
 		private $_config = array();
 		private $_actions = array();
 		private $_filters = array();
@@ -25,6 +24,9 @@
 		private $_caches = array();
 		private $__hbs_loaded_files = array();
 		private $__hbs_loaded_functions = array();
+		private $__hbs_feedback_controller = null;
+		private $__hbs_error_controller = null;
+		private $__hbs_request_controller = null;
 
 		/**
 		 * Initializes the application by loading all of the relevant files from the subdirectories
@@ -34,7 +36,7 @@
 			$this->hummbingbirdBaseDir = realpath( dirname( __FILE__ ) );
 			$this->setBaseDir( substr( $this->hummbingbirdBaseDir, 0, strlen( $this->hummbingbirdBaseDir ) - 3 ) );
 			$res = $this->loadComposer();
-			$hummingbird_library_directories = array( 'abstracts', 'controllers', 'adapters', 'interfaces', 'functions', 'data' );
+			$hummingbird_library_directories = array( 'abstractInterfaces', 'abstracts', 'controllers', 'adapters', 'interfaces', 'functions', 'data' );
 			foreach ( $hummingbird_library_directories as $dir ) {
 				$absdir = $this->getExistingAbsoluteDirOfFile( sprintf( '/%s/', $dir ), true );
 				if ( false !== $absdir ) {
@@ -85,10 +87,36 @@
 				}
 			}
 			$this->setConfig( $defaultConfig );
+			$this->addAction( 'init', array( $this, 'activateControllers' ) );
 		}
 
+		/**
+		 * Merges an array with configuration parameters into the existing application configuration
+		 * @param array $config an array of parameter sections and settings
+		 */
 		public function setConfig( array $config = array() ) {
 			$this->_config = array_replace_recursive( $this->_config, $config );
+		}
+
+		/**
+		 * Retreive a section of the current application configuration
+		 * @param  string $key The section of the configuration which should be returned
+		 * @return array      The second of the configuration relatd to the key
+		 */
+		public function getConfigSection( string $key = '' ) {
+			return __hba_get_array_key( $key, $this->_config, array() );
+		}
+
+		/**
+		 * Retrieve a specific setting
+		 * @param  string $section The section which the setting is found in
+		 * @param  string $setting The name of the setting
+		 * @param  mixed $default The default value to be returned
+		 * @return mixed          The setting's value
+		 */
+		public function getConfigSetting( string $section = '', string $setting = '', $default = null ) {
+			$section = $this->getConfigSection( $section );
+			return __hba_get_array_key( $setting, $section, $default );
 		}
 
 		public function addAction( $key, $function, $priority = 100, $passApp = true ) {
@@ -175,6 +203,18 @@
 			return $filterable;
 		}
 
+		public function runFeedbackFunction( string $function ) {
+			$args = func_get_args();
+			array_shift( $args );
+			return call_user_func_array( array( $this->__hbs_feedback_controller, $function ), $args );
+		}
+
+		public function runErrorFunction( string $function ) {
+			$args = func_get_args();
+			array_shift( $args );
+			return call_user_func_array( array( $this->__hbs_error_controller, $function ), $args );
+		}
+
 		private function doAction( $key ) {
 			if (
 				array_key_exists( $key, $this->_actions )
@@ -239,6 +279,32 @@
 			}
 			array_push( $this->__hbs_loaded_files, $composer_auto_loader );
 			require_once $composer_auto_loader;
+		}
+
+		private function activateControllers() {
+			$fcc = $this->getConfigSetting( 'application', 'feedbackController' );
+			if ( __hba_is_instance_of( $fcc, 'Hummingbird\HummingbirdFeedbackControllerInterface' ) ) {
+				$this->__hbs_feedback_controller = new $fcc( $this );
+			}
+			else {
+				throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdFeedbackControllerInterface', $ecc ), 1 );
+			}
+			$ecc = $this->getConfigSetting( 'application', 'errorController' );
+			if ( __hba_is_instance_of( $ecc, 'Hummingbird\HummingbirdErrorControllerInterface' ) ) {
+				$this->__hbs_error_controller = new $ecc( $this );
+			}
+			else {
+				throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdErrorControllerInterface', $ecc ), 1 );
+			}
+			$rcc = $this->getConfigSetting( 'application', 'requestController' );
+			if ( __hba_is_instance_of( $rcc, 'Hummingbird\HummingbirdRequestControllerInterface' ) ) {
+				$this->__hbs_request_controller = new $rcc( $this );
+			}
+			else {
+				throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdRequestControllerInterface', $rcc ), 1 );
+			}
+			set_error_handler( array( $this->__hbs_error_controller, 'handleError' ), E_ALL | E_STRICT );
+			set_exception_handler( array( $this->__hbs_error_controller, $this->__hbs_error_controller->getExceptionHandlerFunctionName() ) );
 		}
 
 		private static function _hba_strip_trailing_slash( $input ) {
@@ -319,10 +385,27 @@
 			return $return;
 		}
 
-		public static function EchoTest() {
-			$args = func_get_args();
-			echo '<pre>';
-			print_r( $args );
-			echo '</pre>';
+		public function __get( string $name ) {
+			return null;
+		}
+
+		public function __set( string $name, $value ) {
+			return false;
+		}
+
+		public function __isset( string $name ) {
+			return false;
+		}
+
+		public function __unset( string $name ) {
+			return false;
+		}
+
+		public function __call( string $name, array $arguments = array() ) {
+			return false;
+		}
+
+		public static function __callStatic( string $name, array $arguments = array() ) {
+			return false;
 		}
 	}

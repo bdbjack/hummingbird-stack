@@ -7,6 +7,9 @@
 			'timezone' => 'UTC',
 			'debug' => true,
 			'language' => 'EN',
+			'feedbackController' => '\Hummingbird\HummingbirdDefaultFeedbackController',
+			'errorController' => '\Hummingbird\HummingbirdDefaultErrorController',
+			'requestController' => '\Hummingbird\HummingbirdDefaultRequestController',
 		),
 		'authentication' => array(
 			'enabled' => false,

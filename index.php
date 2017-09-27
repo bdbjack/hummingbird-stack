@@ -15,9 +15,6 @@
 			),
 		) );
 		$hba->run();
-		echo '<pre>';
-		print_r( $hba );
-		echo '</pre>';
 	}
 	catch ( Exception $e ) {
 		echo '<pre>';

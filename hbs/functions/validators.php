@@ -51,3 +51,19 @@
 	function __hba_is_decimal( $val ) {
 		return ( is_numeric( $val ) && floor( $val ) != $val );
 	}
+
+	function __hba_is_instance_of( $class, string $interface ) {
+		if ( ! class_exists( $class ) && ! is_object( $class ) ) {
+			return false;
+		}
+		$implements = class_implements( $class );
+		return array_key_exists( $interface, $implements );
+	}
+
+	function __hba_is_cli() {
+		return ( 'cli' == php_sapi_name() );
+	}
+
+	function __hba_matches_regex( string $string, string $pattern ) {
+		return ( $string == $pattern || intval( preg_match( __hba_sanitize_regex( $pattern ), $string, $matches ) ) > 0 );
+	}

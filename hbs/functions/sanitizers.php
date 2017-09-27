@@ -57,3 +57,14 @@
 		$amount = floatval( $amount );
 		return money_format( $format, $amount );
 	}
+
+	function __hba_sanitize_regex( $input ) {
+		$input = str_replace( '/', '\/', $input );
+		if ( '/' !== substr( $input, 0, 1 ) ) {
+			$input = '/' . $input;
+		}
+		if ( '/' !== substr( $input, -1 ) ) {
+			$input .= '/';
+		}
+		return $input;
+	}

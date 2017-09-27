@@ -19,6 +19,7 @@
 		private $_request = array();
 		private $_config = array();
 		private $_actions = array();
+		private $_filters = array();
 		private $_routes = array();
 		private $_databases = array();
 		private $_caches = array();
@@ -56,6 +57,31 @@
 					}
 				}
 			}
+			$allFunctions = get_defined_functions();
+			$allRealFunctions = array();
+			foreach ( $allFunctions as $section => $list ) {
+				foreach ( $list as $funct ) {
+					if ( ! in_array( $funct, $allRealFunctions ) ) {
+						array_push( $allRealFunctions, $funct );
+					}
+				}
+			}
+			foreach ( $allRealFunctions as $funct ) {
+				if ( __hba_beginning_matches( '__hba_', $funct ) ) {
+					$rf = substr( $funct, strlen( '__hba_' ) );
+					if ( ! function_exists( $rf ) ) {
+						$toEval = sprintf(
+							'function %s() {' . "\r\n" .
+							'	$args = func_get_args();' . "\r\n" .
+							'	return call_user_func_array( \'%s\', $args );' . "\r\n" .
+							'}',
+							$rf,
+							$funct
+						);
+						eval( $toEval );
+					}
+				}
+			}
 			$this->setConfig( $defaultConfig );
 		}
 
@@ -72,7 +98,19 @@
 				'priority' => $priority,
 				'passApp' => ( true == $passApp ),
 			) );
-			usort( $this->_actions[ $key ], array( get_called_class(), '_hba_sort_actions_by_priority' ) );
+			usort( $this->_actions[ $key ], array( get_called_class(), '_hba_sort_by_priority' ) );
+		}
+
+		public function addFilter( $key, $function, $priority = 100, $passApp = true ) {
+			if ( ! array_key_exists( $key, $this->_filters ) ) {
+				$this->_filters[ $key ] = array();
+			}
+			array_push( $this->_filters[ $key ], array(
+				'function' => $function,
+				'priority' => $priority,
+				'passApp' => ( true == $passApp ),
+			) );
+			usort( $this->_filters[ $key ], array( get_called_class(), '_hba_sort_by_priority' ) );
 		}
 
 		public function addRoute() {
@@ -95,6 +133,44 @@
 			if ( file_exists( $dir ) && is_dir( $dir ) ) {
 				$this->baseDir = self::_hba_strip_trailing_slash( $dir );
 			}
+		}
+
+		public function doFilter( $key, $filterable = null ) {
+			if (
+				array_key_exists( $key, $this->_filters )
+				&& is_array( $this->_filters[ $key ] )
+			) {
+				$args = func_get_args();
+				if ( is_array( $args ) && count( $args ) > 1 ) {
+					array_shift( $args );
+				}
+				else {
+					$args = array();
+				}
+				foreach ( $this->_filters[ $key ] as $action ) {
+					$function = ( is_array( $action ) && array_key_exists( 'function', $action ) ) ? $action['function'] : '';
+					$passApp = ( is_array( $action ) && array_key_exists( 'passApp', $action ) ) ? $action['passApp'] : false;
+					$exists = false;
+					if ( is_array( $function ) ) {
+						list( $class, $method ) = $function;
+						if ( ( is_object( $class ) || class_exists( $class ) ) && method_exists( $class, $method ) ) {
+							$exists = true;
+						}
+					}
+					else {
+						if ( function_exists( $function ) ) {
+							$exists = true;
+						}
+					}
+					if ( true == $exists ) {
+						if ( true == $passApp ) {
+							array_unshift( $args, $this );
+						}
+						$filterable = call_user_func_array( $function, $args );
+					}
+				}
+			}
+			return $filterable;
 		}
 
 		private function doAction( $key ) {
@@ -177,7 +253,7 @@
 			return $input;
 		}
 
-		private static function _hba_sort_actions_by_priority( $a, $b ) {
+		private static function _hba_sort_by_priority( $a, $b ) {
 			$pa = ( is_array( $a ) && array_key_exists( 'priority', $a ) ) ? floatval( $a['priority'] ) : 100;
 			$pb = ( is_array( $b ) && array_key_exists( 'priority', $b ) ) ? floatval( $b['priority'] ) : 100;
 			if ( $pa == $pb ) {

@@ -31,13 +31,6 @@
 		function __construct() {
 			$this->hummbingbirdBaseDir = realpath( dirname( __FILE__ ) );
 			$this->setBaseDir( substr( $this->hummbingbirdBaseDir, 0, strlen( $this->hummbingbirdBaseDir ) - 3 ) );
-			if ( true !== $recs->status ) {
-				foreach ( $recs as $rec => $fulfilled ) {
-					if ( 'status' !== $rec && true !== $fulfilled ) {
-						throw new \Exception( sprintf( 'Missing requirement "%s"', $rec ), 1 );
-					}
-				}
-			}
 			$res = $this->loadComposer();
 			$hummingbird_library_directories = array( 'abstracts', 'controllers', 'adapters', 'interfaces', 'functions', 'data' );
 			foreach ( $hummingbird_library_directories as $dir ) {
@@ -56,6 +49,13 @@
 				}
 			}
 			$recs = self::CheckRequirements( true );
+			if ( true !== $recs->status ) {
+				foreach ( $recs as $rec => $fulfilled ) {
+					if ( 'status' !== $rec && true !== $fulfilled ) {
+						throw new \Exception( sprintf( 'Missing requirement "%s"', $rec ), 1 );
+					}
+				}
+			}
 			$this->setConfig( $defaultConfig );
 		}
 

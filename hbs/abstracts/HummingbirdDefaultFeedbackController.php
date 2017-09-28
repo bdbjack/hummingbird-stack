@@ -64,9 +64,6 @@
 					echo $output;
 					break;
 			}
-			echo '<pre>';
-			print_r( $fbt );
-			echo '</pre>';
 			if ( true == $exit ) {
 				exit();
 			}
@@ -85,6 +82,42 @@
 		function debug( $data = null ) {
 			$this->fbo = $this->generateFeedbackObject( 'DEBUG', $data );
 			return true;
+		}
+
+		function redirect( string $location, int $delay = 0, int $type = 301 ) {
+			if ( headers_sent() ) {
+				switch( $type ) {
+					case 301:
+						$msg = 'Moved Permanently';
+						break;
+
+					case 302:
+						$msg = 'Temporary Redirect';
+						break;
+
+					case 307:
+						$msg = 'Temporary Redirect';
+						break;
+
+					default:
+						$msg = 'Redirect';
+						break;
+				}
+				$this->fbo = $this->generateFeedbackObject( 'REDIRECT', $location, $msg, array(), $type );
+				$this->outputFeedback();
+			}
+			else {
+				if ( 0 == __hba_sanitize_absint( $delay ) ) {
+					http_response_code( $type );
+					header( sprintf( 'Location: %s', $location ) );
+					exit();
+				}
+				else {
+					http_response_code( $type );
+					header( sprintf( 'Refresh: %d; url=%s', $delay, $location ) );
+					exit();
+				}
+			}
 		}
 
 		protected function getHtmlFeedback() {

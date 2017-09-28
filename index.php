@@ -21,3 +21,7 @@
 		print_r( $e->getMessage() );
 		echo '</pre>';
 	}
+
+	echo '<pre>';
+	print_r( $hba );
+	echo '</pre>';

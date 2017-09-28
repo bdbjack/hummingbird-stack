@@ -215,6 +215,12 @@
 			return call_user_func_array( array( $this->__hbs_error_controller, $function ), $args );
 		}
 
+		public function runRequestFunction( string $function ) {
+			$args = func_get_args();
+			array_shift( $args );
+			return call_user_func_array( array( $this->__hbs_request_controller, $function ), $args );
+		}
+
 		private function doAction( $key ) {
 			if (
 				array_key_exists( $key, $this->_actions )
@@ -305,16 +311,18 @@
 			}
 			set_error_handler( array( $this->__hbs_error_controller, 'handleError' ), E_ALL | E_STRICT );
 			set_exception_handler( array( $this->__hbs_error_controller, $this->__hbs_error_controller->getExceptionHandlerFunctionName() ) );
+			$this->baseUri = $this->runRequestFunction( 'getURIFromPath', '/' );
+			$this->baseUrl = $this->runRequestFunction( 'getURLFromPath', '/' );
 		}
 
-		private static function _hba_strip_trailing_slash( $input ) {
+		public static function _hba_strip_trailing_slash( $input ) {
 			if ( '/' == substr( $input, -1 ) || '\\' == substr( $input, -1 ) ) {
 				$input = substr( $input, 0, strlen( $input ) - 1 );
 			}
 			return $input;
 		}
 
-		private static function _hba_strip_leading_slash( $input ) {
+		public static function _hba_strip_leading_slash( $input ) {
 			if ( '/' == substr( $input, 0, 1 ) || '\\' == substr( $input, 0, 1 ) ) {
 				$input = substr( $input, 1 );
 			}

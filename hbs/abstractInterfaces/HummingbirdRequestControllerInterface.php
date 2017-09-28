@@ -13,4 +13,7 @@
 		public function getCurrentURL();
 		public function getURIFromPath( string $path = '/', array $query = array() );
 		public function getURLFromPath( string $path = '/', array $query = array() );
+		public function getCookie( string $key, $default = null );
+		public function setCookie( string $key, $value = null, $exp = null );
+		public function unsetCooke( string $key );
 	}

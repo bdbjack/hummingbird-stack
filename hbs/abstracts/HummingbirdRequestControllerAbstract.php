@@ -14,6 +14,7 @@
 		private $_head = array();
 		private $_patch = array();
 		private $_cli = array();
+		private $_cookies = array();
 		private $__server = array();
 		private $__headers = array();
 
@@ -31,6 +32,7 @@
 			$this->_delete = $this->parse_http_method_data( 'DELETE' );
 			$this->_head = $this->parse_http_method_data( 'HEAD' );
 			$this->_options = $this->parse_http_method_data( 'OPTIONS' );
+			$this->_cookies = $_COOKIE;
 			if ( ! __hba_is_empty( __hba_get_array_key( 'HTTP_CF_VISITOR', $this->__server ) ) ) {
 				$cfv = json_decode( __hba_get_array_key( 'HTTP_CF_VISITOR', $this->__server ) );
 			}
@@ -59,6 +61,11 @@
 					break;
 			}
 			$this->_cli = __hba_get_array_key( 'query', $this->getCLIInfo(), array() );
+			if ( __hba_is_cli() ) {
+				$this->_method = 'CLI';
+				$this->_protocol = 'PHP';
+				$this->_scheme = 'php';
+			}
 		}
 
 		function getRequestMethod() {
@@ -102,6 +109,9 @@
 		}
 
 		function getCurrentPath( bool $prefix = false ) {
+			if ( true == __hba_is_cli() ) {
+				return $this->getCLICurrentPath();
+			}
 			$baseUri = \Hummingbird\HummingbirdApp::_hba_strip_trailing_slash( $this->_get_base_uri() );
 			$currentUri = $this->getCurrentURI();
 			$path = substr( $currentUri, strlen( $baseUri ) );
@@ -115,6 +125,9 @@
 		}
 
 		function getCurrentURL() {
+			if ( true == __hba_is_cli() ) {
+				return $this->getCLICurrentURL();
+			}
 			$scheme = $this->_scheme;
 			$host = $this->_get_hostname();
 			$uri = $this->getCurrentURI();
@@ -122,6 +135,9 @@
 		}
 
 		function getURIFromPath( string $path = '/', array $query = array() ) {
+			if ( true == __hba_is_cli() ) {
+				return $this->getCLIURIFromPath( $path, $query );
+			}
 			$baseUri = $this->_get_base_uri();
 			$return = sprintf( '%s/%s', \Hummingbird\HummingbirdApp::_hba_strip_trailing_slash( $baseUri ), \Hummingbird\HummingbirdApp::_hba_strip_leading_slash( $path ) );
 			if ( __hba_can_loop( $query ) ) {
@@ -131,12 +147,32 @@
 		}
 
 		function getURLFromPath( string $path = '/', array $query = array() ) {
+			if ( true == __hba_is_cli() ) {
+				return $this->getCLIURLFromPath( $path, $query );
+			}
 			$scheme = $this->_scheme;
 			$host = $this->_get_hostname();
 			$uri = $this->getURIFromPath( $path, $query );
 			return sprintf( '%s://%s/%s', $scheme, $host, \Hummingbird\HummingbirdApp::_hba_strip_leading_slash( $uri ) );
 		}
 
+		function getCookie( string $key, $default = null ) {
+			return __hba_get_array_key( $key, $this->_cookies, $default );
+		}
+
+		function setCookie( string $key, $value = null, $exp = null ) {
+			if ( is_null( $exp ) || ! is_numeric( $exp ) ) {
+				$exp = time() + ( 86400 * 30 );
+			}
+			$_COOKIE[ $key ] = $value;
+			$this->_cookies[ $key ] = $value;
+			return setcookie( $key, $value, $exp, $this->getCookiePath(), $this->getCookieDomain(), false, false );
+		}
+
+		function unsetCooke( string $key ) {
+			$exp = time() - 3600;
+			$this->setCookie( $key, '', $exp );
+		}
 
 		public function __get( string $name ) {
 			return array();
@@ -212,6 +248,50 @@
 				$ret = __hba_get_array_key( 'SERVER_NAME', $this->__server, '127.0.0.1' );
 			}
 			return $ret;
+		}
+
+		private function getCLICurrentPath() {
+			return __hba_get_array_key( 'path', $this->getCLIInfo(), '/' );
+		}
+
+		private function getCLICurrentURL() {
+			$path = $this->getCLICurrentPath();
+			$query = __hba_get_array_key( 'query', $this->getCLIInfo(), array() );
+			$base = $this->_get_current_script_absolute();
+			$return = sprintf( '%s --path="%s"', $base, $path );
+			if ( __hba_can_loop( $query ) ) {
+				$return .= sprintf( ' --query="%s"', http_build_query( $query ) );
+			}
+			return $return;
+		}
+
+		private function getCLIURIFromPath( $path = '/', array $query = array() ) {
+			$return = sprintf( '--path="%s"', $path );
+			if ( __hba_can_loop( $query ) ) {
+				$return .= sprintf( ' --query="%s"', http_build_query( $query ) );
+			}
+			return $return;
+		}
+
+		private function getCLIURLFromPath( $path = '/', array $query = array() ) {
+			$base = $this->_get_current_script_absolute();
+			return sprintf( '%s %s', $base, $this->getCLIURIFromPath( $path, $query ) );
+		}
+
+		private function getCookieDomain() {
+			$host = $this->_get_hostname();
+			if ( ! __hba_is_ip( $host ) ) {
+				$host = '.' . $host;
+			}
+			$portstop = strpos( $host, ':' );
+			if ( false !== $portstop ) {
+				$host = substr( $host, 0, $portstop );
+			}
+			return $host;
+		}
+
+		private function getCookiePath() {
+			return ( __hba_is_cli() ) ? '/' : $this->_get_base_uri();
 		}
 
 		private function parse_http_method_data( $method ) {

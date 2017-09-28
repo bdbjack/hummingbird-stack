@@ -67,3 +67,8 @@
 	function __hba_matches_regex( string $string, string $pattern ) {
 		return ( $string == $pattern || intval( preg_match( __hba_sanitize_regex( $pattern ), $string, $matches ) ) > 0 );
 	}
+
+	function __hba_is_ip( $input ) {
+		$input = filter_var( $input, FILTER_VALIDATE_IP );
+		return ( true == filter_var( $input, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) || true == filter_var( $input, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) );
+	}

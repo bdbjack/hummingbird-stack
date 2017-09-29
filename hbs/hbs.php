@@ -261,6 +261,25 @@
 			return call_user_func_array( array( $this->__hbs_request_controller, $function ), $args );
 		}
 
+		public function runDatabaseFunction( string $key = 'default', string $function ) {
+			$args = func_get_args();
+			array_shift( $args );
+			array_shift( $args );
+			if ( false == $this->getConfigSetting( 'databases', 'enabled' ) ) {
+				return false;
+			}
+			if ( ! array_key_exists( $key, $this->__hbs_database_controllers ) ) {
+				return false;
+			}
+			$c = $this->__hbs_database_controllers[ $key ];
+			try {
+				return call_user_func_array( array( $c, $function ), $args );
+			}
+			catch ( \Exception $e ) {
+				return false;
+			}
+		}
+
 		private function doAction( $key ) {
 			if (
 				array_key_exists( $key, $this->_actions )

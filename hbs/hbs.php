@@ -20,13 +20,13 @@
 		private $_actions = array();
 		private $_filters = array();
 		private $_routes = array();
-		private $_databases = array();
-		private $_caches = array();
 		private $__hbs_loaded_files = array();
 		private $__hbs_loaded_functions = array();
+		private $__hba_loaded_actions = array();
 		private $__hbs_feedback_controller = null;
 		private $__hbs_error_controller = null;
 		private $__hbs_request_controller = null;
+		private $__hbs_database_controllers = array();
 
 		/**
 		 * Initializes the application by loading all of the relevant files from the subdirectories
@@ -88,6 +88,7 @@
 			}
 			$this->setConfig( $defaultConfig );
 			$this->addAction( 'init', array( $this, 'activateControllers' ) );
+			$this->addAction( 'initDatbases', array( $this, 'activateDatabaseControllers' ) );
 		}
 
 		/**
@@ -147,8 +148,46 @@
 
 		}
 
-		public function addDatabase() {
-
+		public function addDatabase( string $key, string $type = 'sqlite', string $host = '', int $port = 0, string $name = '/tmp/dbfile.db', string $user = '', string $pass = '', string $prefix = '', bool $frozen = false, bool $readonly = false, bool $overwrite = false ) {
+			if ( false == $this->getConfigSetting( 'databases', 'enabled' ) ) {
+				return false;
+			}
+			if ( in_array( 'initDatbases', $this->__hba_loaded_actions ) ) {
+				$dbc = $this->getConfigSetting( 'application', 'databaseController' );
+				if ( ! __hba_is_instance_of( $dbc, 'Hummingbird\HummingbirdDatabaseControllerInterface' ) ) {
+					throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdDatabaseControllerInterface', $dbc ), 1 );
+				}
+				if ( ! array_key_exists( $key, $this->__hbs_database_controllers ) || true == $overwrite ) {
+					$this->__hbs_database_controllers[ $key ] = new $dbc(
+						$this,
+						$key,
+						$type,
+						$host,
+						$port,
+						$name,
+						$user,
+						$pass,
+						$prefix,
+						$frozen,
+						$readonly
+					);
+				}
+			}
+			else {
+				if ( ! array_key_exists( $key, $this->_config['databases']['servers'] ) || true == $overwrite ) {
+					$this->_config['databases']['servers'][ $key ] = array(
+						'type' => $type,
+						'host' => $host,
+						'port' => $port,
+						'name' => $name,
+						'user' => $user,
+						'pass' => $pass,
+						'prefix' => $prefix,
+						'frozen' => $frozen,
+						'readonly' => $readonly,
+					);
+				}
+			}
 		}
 
 		public function addCache() {
@@ -157,6 +196,7 @@
 
 		public function run() {
 			$this->doAction( 'init' );
+			$this->doAction( 'initDatbases' );
 		}
 
 		public function setBaseDir( $dir ) {
@@ -255,6 +295,7 @@
 						call_user_func_array( $function, $args );
 					}
 				}
+				array_push( $this->__hba_loaded_actions, $key );
 			}
 			return true;
 		}
@@ -313,6 +354,34 @@
 			set_exception_handler( array( $this->__hbs_error_controller, $this->__hbs_error_controller->getExceptionHandlerFunctionName() ) );
 			$this->baseUri = $this->runRequestFunction( 'getURIFromPath', '/' );
 			$this->baseUrl = $this->runRequestFunction( 'getURLFromPath', '/' );
+		}
+
+		private function activateDatabaseControllers() {
+			if ( false == $this->getConfigSetting( 'databases', 'enabled' ) ) {
+				return false;
+			}
+			$dbc = $this->getConfigSetting( 'application', 'databaseController' );
+			if ( ! __hba_is_instance_of( $dbc, 'Hummingbird\HummingbirdDatabaseControllerInterface' ) ) {
+				throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdDatabaseControllerInterface', $dbc ), 1 );
+			}
+			$dbs = $this->getConfigSetting( 'databases', 'servers' );
+			if ( __hba_can_loop( $dbs ) ) {
+				foreach ( $dbs as $key => $dbi ) {
+					$this->__hbs_database_controllers[ $key ] = new $dbc(
+						$this,
+						$key,
+						(string) __hba_get_array_key( 'type', $dbi, '' ),
+						(string) __hba_get_array_key( 'host', $dbi, '' ),
+						(int) __hba_sanitize_absint( __hba_get_array_key( 'port', $dbi, 0 ) ),
+						(string) __hba_get_array_key( 'name', $dbi, '' ),
+						(string) __hba_get_array_key( 'user', $dbi, '' ),
+						(string) __hba_get_array_key( 'pass', $dbi, '' ),
+						(string) __hba_get_array_key( 'prefix', $dbi, '' ),
+						(bool) __hba_get_array_key( 'frozen', $dbi, false ),
+						(bool) __hba_get_array_key( 'readonly', $dbi, false )
+					);
+				}
+			}
 		}
 
 		public static function _hba_strip_trailing_slash( $input ) {

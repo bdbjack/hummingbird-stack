@@ -10,6 +10,7 @@
 			'feedbackController' => '\Hummingbird\HummingbirdDefaultFeedbackController',
 			'errorController' => '\Hummingbird\HummingbirdDefaultErrorController',
 			'requestController' => '\Hummingbird\HummingbirdDefaultRequestController',
+			'databaseController' => '\Hummingbird\HummingbirdDefaultDatabaseController',
 		),
 		'authentication' => array(
 			'enabled' => false,
@@ -46,6 +47,7 @@
 					'pass' => null,
 					'prefix' => '',
 					'frozen' => false,
+					'readonly' => false,
 				),
 			),
 		),

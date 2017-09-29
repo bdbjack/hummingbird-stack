@@ -166,7 +166,12 @@
 			}
 			$_COOKIE[ $key ] = $value;
 			$this->_cookies[ $key ] = $value;
-			return setcookie( $key, $value, $exp, $this->getCookiePath(), $this->getCookieDomain(), false, false );
+			if ( headers_sent() ) {
+				return true;
+			}
+			else {
+				return setcookie( $key, $value, $exp, $this->getCookiePath(), $this->getCookieDomain(), false, false );
+			}
 		}
 
 		function unsetCooke( string $key ) {

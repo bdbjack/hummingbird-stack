@@ -22,21 +22,6 @@
 		echo '</pre>';
 	}
 
-	//$hba->runRequestFunction( 'setCookie', 'test', '123' );
-
 	echo '<pre>';
 	print_r( $hba );
 	echo '</pre>';
-	echo "\r\n";
-	echo '<pre>';
-	print_r( $hba->runRequestFunction( 'getCurrentPath' ) );
-	echo '</pre>';
-	echo "\r\n";
-	echo '<pre>';
-	print_r( $hba->runRequestFunction( 'getCurrentURL' ) );
-	echo '</pre>';
-	echo "\r\n";
-	echo '<pre>';
-	print_r( $hba->runRequestFunction( 'getURLFromPath', '/debug/config/test/', array( 'testing' => '123' ) ) );
-	echo '</pre>';
-	echo "\r\n";

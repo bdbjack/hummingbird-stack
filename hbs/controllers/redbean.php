@@ -12063,7 +12063,7 @@ class Facade
 	public static function ext( $pluginName, $callable )
 	{
 		if ( !ctype_alnum( $pluginName ) ) {
-			throw new RedException( 'Plugin name may only contain alphanumeric characters.' );
+			throw new RedException( sprintf( 'Plugin "%s" is not valid. Plugin name may only contain alphanumeric characters.', $pluginName ) );
 		}
 		self::$plugins[$pluginName] = $callable;
 	}
@@ -12080,7 +12080,7 @@ class Facade
 	public static function __callStatic( $pluginName, $params )
 	{
 		if ( !ctype_alnum( $pluginName) ) {
-			throw new RedException( 'Plugin name may only contain alphanumeric characters.' );
+			throw new RedException( sprintf( 'Plugin "%s" is not valid. Plugin name may only contain alphanumeric characters.', $pluginName ) );
 		}
 		if ( !isset( self::$plugins[$pluginName] ) ) {
 			throw new RedException( 'Plugin \''.$pluginName.'\' does not exist, add this plugin using: R::ext(\''.$pluginName.'\')' );

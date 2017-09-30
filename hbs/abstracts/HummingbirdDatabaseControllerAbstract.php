@@ -43,15 +43,15 @@
 				if ( is_object( $redbean ) ) {
 					$redbean->setBeanHelper( $rbh );
 				}
-				\R::ext( 'sysDispense', array( $this, 'db_dispense' ) );
-				\R::ext( 'sysDispenseAll', array( $this, 'db_dispense_all' ) );
-				\R::ext( 'sysLoad', array( $this, 'db_load' ) );
-				\R::ext( 'sysLoadAll', array( $this, 'db_load_all' ) );
-				\R::ext( 'sysFind', array( $this, 'db_find' ) );
-				\R::ext( 'sysFindOne', array( $this, 'db_find_one' ) );
-				\R::ext( 'sysFindAll', array( $this, 'db_find_all' ) );
-				\R::ext( 'sysCount', array( $this, 'db_count' ) );
-				\R::ext( 'sysWipe', array( $this, 'db_wipe' ) );
+				\R::ext( 'prefixedDispense', array( $this, 'db_dispense' ) );
+				\R::ext( 'prefixedDispenseAll', array( $this, 'db_dispense_all' ) );
+				\R::ext( 'prefixedLoad', array( $this, 'db_load' ) );
+				\R::ext( 'prefixedLoadAll', array( $this, 'db_load_all' ) );
+				\R::ext( 'prefixedFind', array( $this, 'db_find' ) );
+				\R::ext( 'prefixedFindOne', array( $this, 'db_find_one' ) );
+				\R::ext( 'prefixedFindAll', array( $this, 'db_find_all' ) );
+				\R::ext( 'prefixedCount', array( $this, 'db_count' ) );
+				\R::ext( 'prefixedWipe', array( $this, 'db_wipe' ) );
 			}
 			else if ( $this->isRedBean() ) {
 				try {
@@ -75,11 +75,19 @@
 			}
 		}
 
-		private function isRedBean() {
+		function isReadOnly() {
+			return $this->readonly;
+		}
+
+		function isRedBean() {
 			return ( in_array( $this->type, array( 'sqlite', 'mysql', 'pgsql' ) ) );
 		}
 
-		private function db_dispense( $type, $param = null ) {
+		function getDBPrefix() {
+			return $this->prefix;
+		}
+
+		function db_dispense( $type, $param = null ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
 			if ( ! is_empty( $param ) ) {
 				return \R::getRedBean()->dispense( $ot, $param );
@@ -87,7 +95,7 @@
 			return \R::getRedBean()->dispense( $ot );
 		}
 
-		private function db_dispense_all( $type, $param = null ) {
+		function db_dispense_all( $type, $param = null ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
 			if ( ! is_empty( $param ) ) {
 				return \R::getRedBean()->dispenseAll( $ot, $param );
@@ -95,24 +103,24 @@
 			return \R::getRedBean()->dispenseAll( $ot );
 		}
 
-		private function db_load( $type, $id = 0 ) {
+		function db_load( $type, $id = 0 ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
 			return \R::getRedBean()->load( $ot, $id );
 		}
 
-		private function db_load_all( $type, $ids = array() ) {
+		function db_load_all( $type, $ids = array() ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
 			return \R::getRedBean()->loadAll( $ot, $ids );
 		}
 
-		private function db_find( $type, $query = null, $vars = array() ) {
+		function db_find( $type, $query = null, $vars = array() ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
 			return \R::getRedBean()->find( $ot, array(), $query, $vars );
 		}
 
-		private function db_find_one( $type, $query = null, $vars = array() ) {
+		function db_find_one( $type, $query = null, $vars = array() ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
-			$res = \R::sysFind( $type, $query, $vars );
+			$res = \R::prefixedFind( $type, $query, $vars );
 			if ( ! can_loop( $res ) ) {
 				return null;
 			}
@@ -120,12 +128,12 @@
 			return $res[ $reskeys[0] ];
 		}
 
-		private function db_find_all( $type, $query = null, $vars = array() ) {
+		function db_find_all( $type, $query = null, $vars = array() ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
 			return \R::getRedBean()->find( $ot, array(), $query, $vars );
 		}
 
-		private function db_count( $type, $query = null, $vars = array() ) {
+		function db_count( $type, $query = null, $vars = array() ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
 			if ( ! can_loop( $vars ) ) {
 				return \R::getRedBean()->count( $ot, $query );
@@ -133,30 +141,36 @@
 			return \R::getRedBean()->count( $ot, $query, $vars );
 		}
 
-		private function db_wipe( $type ) {
+		function db_wipe( $type ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
 			return \R::getRedBean()->wipe( $ot );
 		}
 
-		public function __get( string $name ) {
+		function __get( string $name ) {
 			return null;
 		}
 
-		public function __set( string $name, $value ) {
+		function __set( string $name, $value ) {
 			return false;
 		}
 
-		public function __isset( string $name ) {
+		function __isset( string $name ) {
 			return false;
 		}
 
-		public function __unset( string $name ) {
+		function __unset( string $name ) {
 			return false;
 		}
 
-		public function __call( string $name, array $arguments = array() ) {
+		function __call( string $name, array $arguments = array() ) {
 			if ( $this->isRedBean() ) {
 				\R::selectDatabase( $this->key );
+				if ( ! __hba_is_empty( $this->prefix ) && true !== $this->readonly && in_array( $name, array(
+					'dispense','dispenseAll','load','loadAll','find','findOne','findAll','count','wipe',
+				) ) ) {
+					$name = sprintf( 'prefixed%s', ucfirst( $name ) );
+				}
+				// fix the names?
 				return forward_static_call_array( array( '\R', $name ), $arguments );
 			}
 			else {
@@ -165,7 +179,7 @@
 			}
 		}
 
-		public static function __callStatic( string $name, array $arguments = array() ) {
+		static function __callStatic( string $name, array $arguments = array() ) {
 			return false;
 		}
 	}

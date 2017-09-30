@@ -53,7 +53,7 @@
 	}
 
 	function __hba_is_instance_of( $class, string $interface ) {
-		if ( ! class_exists( $class ) && ! is_object( $class ) ) {
+		if ( ! is_object( $class ) && ! class_exists( $class ) ) {
 			return false;
 		}
 		$implements = class_implements( $class );

@@ -27,6 +27,7 @@
 		private $__hbs_error_controller = null;
 		private $__hbs_request_controller = null;
 		private $__hbs_database_controllers = array();
+		private $__hbs_cache_controller = null;
 
 		/**
 		 * Initializes the application by loading all of the relevant files from the subdirectories
@@ -89,6 +90,7 @@
 			$this->setConfig( $defaultConfig );
 			$this->addAction( 'init', array( $this, 'activateControllers' ) );
 			$this->addAction( 'initDatbases', array( $this, 'activateDatabaseControllers' ) );
+			$this->addAction( 'initCache', array( $this, 'activateCacheController' ) );
 		}
 
 		/**
@@ -190,19 +192,20 @@
 			}
 		}
 
-		public function addCache() {
-
-		}
-
 		public function run() {
 			$this->doAction( 'init' );
 			$this->doAction( 'initDatbases' );
+			$this->doAction( 'initCache' );
 		}
 
 		public function setBaseDir( $dir ) {
 			if ( file_exists( $dir ) && is_dir( $dir ) ) {
 				$this->baseDir = self::_hba_strip_trailing_slash( $dir );
 			}
+		}
+
+		public function getBaseDir() {
+			return $this->baseDir;
 		}
 
 		public function doFilter( $key, $filterable = null ) {
@@ -276,8 +279,17 @@
 				return call_user_func_array( array( $c, $function ), $args );
 			}
 			catch ( \Exception $e ) {
+				$bt = debug_backtrace();
+				$trace = array_shift( $bt );
+				$this->runErrorFunction( 'writeToLogFile', sprintf( 'Database function "%s" failed on database "%s": %s IN File %s Line %d', $function, $key, $e->getMessage(), __hba_get_array_key( 'file', $trace ), __hba_get_array_key( 'line', $trace ) ) );
 				return false;
 			}
+		}
+
+		public function runCacheFunction( string $function ) {
+			$args = func_get_args();
+			array_shift( $args );
+			return call_user_func_array( array( $this->__hbs_cache_controller, $function ), $args );
 		}
 
 		private function doAction( $key ) {
@@ -401,6 +413,14 @@
 					);
 				}
 			}
+		}
+
+		private function activateCacheController() {
+			$cc = $this->getConfigSetting( 'application', 'cacheController' );
+			if ( ! __hba_is_instance_of( $cc, 'Hummingbird\HummingbirdCacheControllerInterface' ) ) {
+				throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdCacheControllerInterface', $cc ), 1 );
+			}
+			$this->__hbs_cache_controller = new $cc( $this );
 		}
 
 		public static function _hba_strip_trailing_slash( $input ) {

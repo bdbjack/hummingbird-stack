@@ -11,6 +11,8 @@
 			'errorController' => '\Hummingbird\HummingbirdDefaultErrorController',
 			'requestController' => '\Hummingbird\HummingbirdDefaultRequestController',
 			'databaseController' => '\Hummingbird\HummingbirdDefaultDatabaseController',
+			'cacheController' => '\Hummingbird\HummingbirdDefaultCacheController',
+			'tmpDir' => realpath( '/tmp/' ),
 		),
 		'authentication' => array(
 			'enabled' => false,

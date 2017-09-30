@@ -76,10 +76,10 @@
 
 				case 'database':
 					$bean = $this->_get_bean_for_key( $key );
-					echo '<pre>';
-					var_dump( $bean );
-					echo '</pre>';
-					exit();
+					$bean->value = serialize( $value );
+					$bean->expires = time() + $exp;
+					$beanId = $this->hba->runDatabaseFunction( 'default', 'store', $bean );
+					return ( $beanId > 0 );
 					break;
 
 				case 'filesystem':
@@ -109,6 +109,12 @@
 					break;
 
 				case 'database':
+					$bean = $this->_get_bean_for_key( $key );
+					if ( is_a( $bean, 'RedBeanPHP\OODBBean' ) ) {
+						if ( time() < __hba_sanitize_absint( $bean->expires ) ) {
+							return @unserialize( $bean->value );
+						}
+					}
 					break;
 
 				case 'filesystem':
@@ -140,6 +146,11 @@
 					break;
 
 				case 'database':
+					$bean = $this->_get_bean_for_key( $key );
+					if ( is_a( $bean, 'RedBeanPHP\OODBBean' ) ) {
+						$this->hba->runDatabaseFunction( 'default', 'trash', $bean );
+						return true;
+					}
 					break;
 
 				case 'filesystem':
@@ -167,6 +178,7 @@
 					break;
 
 				case 'database':
+					return $this->hba->runDatabaseFunction( 'default', 'wipe', __hba_get_array_key( 'beanType', $this->_settings ) );
 					break;
 
 				case 'filesystem':
@@ -215,14 +227,12 @@
 
 		private function _get_bean_for_key( string $key ) {
 			$cacheKey = md5( $key );
-			$bean = $this->hba->runDatabaseFunction( 'default', 'findOne', __hba_get_array_key( 'beanType', $this->_settings ), 'cacheKey = :cacheKey', array( 'cacheKey' => $cacheKey ) );
+			$bean = $this->hba->runDatabaseFunction( 'default', 'findOne', __hba_get_array_key( 'beanType', $this->_settings ), 'cache_key = :cacheKey', array( 'cacheKey' => $cacheKey ) );
 			if ( ! is_a( $bean, '\RedBeanPHP\OODBBean') ) {
 				$bean = $this->hba->runDatabaseFunction( 'default', 'dispense', __hba_get_array_key( 'beanType', $this->_settings ) );
 				$bean->cacheKey = $cacheKey;
 			}
-			echo '<pre>';
-			print_r( $bean );
-			echo '</pre>';
+			return $bean;
 		}
 
 		private function _get_filesystem_cache_filename( string $key ) {

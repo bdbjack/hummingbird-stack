@@ -66,12 +66,24 @@
 			}
 			switch( $this->type ) {
 				case 'redis':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Redis' ) || is_a( $cobj, '\RedisArray' ) ) {
+						return ( $cobj->set( $key, $value, $exp ) > 0 );
+					}
 					break;
 
 				case 'memcached':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Memcached') ) {
+						return $cobj->set( $key, $value, time() + $exp );
+					}
 					break;
 
 				case 'memcache':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Memcache') ) {
+						return $cobj->set( $key, serialize( $value ), 0, time() + $exp );
+					}
 					break;
 
 				case 'database':
@@ -100,12 +112,30 @@
 			}
 			switch( $this->type ) {
 				case 'redis':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Redis' ) || is_a( $cobj, '\RedisArray' ) ) {
+						$res = $cobj->get( $key );
+						if ( false !== $res ) {
+							return $res;
+						}
+					}
 					break;
 
 				case 'memcached':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Memcached') ) {
+						return $cobj->get( $key );
+					}
 					break;
 
 				case 'memcache':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Memcache') ) {
+						$value = $cobj->get( $key );
+						if ( ! __hba_is_empty( $value ) ) {
+							return @unserialize( $value );
+						}
+					}
 					break;
 
 				case 'database':
@@ -137,12 +167,25 @@
 			}
 			switch( $this->type ) {
 				case 'redis':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Redis' ) || is_a( $cobj, '\RedisArray' ) ) {
+						$del = $cobj->delete( $key );
+						return ( is_array( $del ) ) ? __hba_can_loop( $del ) : ( true == $del );
+					}
 					break;
 
 				case 'memcached':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Memcached') ) {
+						return $cobj->delete( $key );
+					}
 					break;
 
 				case 'memcache':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Memcache') ) {
+						return $cobj->delete( $key );
+					}
 					break;
 
 				case 'database':
@@ -169,12 +212,25 @@
 			}
 			switch( $this->type ) {
 				case 'redis':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Redis' ) || is_a( $cobj, '\RedisArray' ) ) {
+						$del = $cobj->flushAll();
+						return ( is_array( $del ) ) ? __hba_can_loop( $del ) : $del;
+					}
 					break;
 
 				case 'memcached':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Memcached') ) {
+						return $cobj->flush();
+					}
 					break;
 
 				case 'memcache':
+					$cobj = __hba_get_array_key( 'cobj', $this->_settings );
+					if ( is_a( $cobj, '\Memcache') ) {
+						return $cobj->flush();
+					}
 					break;
 
 				case 'database':

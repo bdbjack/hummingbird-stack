@@ -17,6 +17,7 @@
 		private $_cookies = array();
 		private $__server = array();
 		private $__headers = array();
+		private $_ip;
 
 		function __construct( \Hummingbird\HummingbirdApp $hba ) {
 			$this->hba = $hba;
@@ -61,6 +62,7 @@
 					break;
 			}
 			$this->_cli = __hba_get_array_key( 'query', $this->getCLIInfo(), array() );
+			$this->_ip = new \Hummingbird\HummingbirdIPInterface();
 			if ( __hba_is_cli() ) {
 				$this->_method = 'CLI';
 				$this->_protocol = 'PHP';
@@ -178,6 +180,15 @@
 			$exp = time() - 3600;
 			$this->setCookie( $key, '', $exp );
 		}
+
+		function getCurrentUserIP() {
+
+		}
+
+		function getCurrentUserIPInfo() {
+
+		}
+
 
 		public function __get( string $name ) {
 			return array();

@@ -20,6 +20,8 @@
 			'allowHTTPBasicAuth' => false,
 			'allowHTTPHeaderAuth' => false,
 			'allowHTTPCookieAuth' => false,
+			'allowSessionAuth' => false,
+			'allowCLIAuth' => false,
 			'authRedirectUri' => '/login/',
 		),
 		'newrelic' => array(

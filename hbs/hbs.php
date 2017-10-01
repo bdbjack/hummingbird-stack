@@ -28,6 +28,7 @@
 		private $__hbs_request_controller = null;
 		private $__hbs_database_controllers = array();
 		private $__hbs_cache_controller = null;
+		private $__hba_authentication_controller = null;
 
 		/**
 		 * Initializes the application by loading all of the relevant files from the subdirectories
@@ -92,6 +93,7 @@
 			$this->addAction( 'initDatbases', array( $this, 'activateDatabaseControllers' ) );
 			$this->addAction( 'initCache', array( $this, 'activateCacheController' ) );
 			$this->addAction( 'initSession', array( $this, 'activateSessionController' ) );
+			$this->addAction( 'initAuthentication', array( $this, 'activateAuthenticationController' ) );
 		}
 
 		/**
@@ -198,6 +200,7 @@
 			$this->doAction( 'initDatbases' );
 			$this->doAction( 'initCache' );
 			$this->doAction( 'initSession' );
+			$this->doAction( 'initAuthentication' );
 		}
 
 		public function setBaseDir( $dir ) {
@@ -292,6 +295,15 @@
 			$args = func_get_args();
 			array_shift( $args );
 			return call_user_func_array( array( $this->__hbs_cache_controller, $function ), $args );
+		}
+
+		public function runAuthenticationFunction( string $function ) {
+			$args = func_get_args();
+			array_shift( $args );
+			if ( false == $this->getConfigSetting( 'authentication', 'enabled' ) ) {
+				return false;
+			}
+			return call_user_func_array( array( $this->__hba_authentication_controller, $function ), $args );
 		}
 
 		private function doAction( $key ) {
@@ -434,6 +446,29 @@
 				$sch = new $sc( $this );
 				call_user_func_array( 'session_set_save_handler', $sch->getSessionSaveHandlerCallbackArray() );
 				session_start();
+			}
+			else {
+				global $_SESSION;
+				$_SESSION = array();
+			}
+		}
+
+		private function activateAuthenticationController() {
+			if (
+				true == $this->getConfigSetting( 'authentication', 'enabled' )
+				&& (
+					true == $this->getConfigSetting( 'authentication', 'allowCLIAuth' )
+					|| true == $this->getConfigSetting( 'authentication', 'allowHTTPBasicAuth' )
+					|| true == $this->getConfigSetting( 'authentication', 'allowHTTPHeaderAuth' )
+					|| true == $this->getConfigSetting( 'authentication', 'allowHTTPCookieAuth' )
+					|| true == $this->getConfigSetting( 'authentication', 'allowSessionAuth' )
+				)
+			) {
+				$ac = $this->getConfigSetting( 'authentication', 'controller' );
+				if ( ! __hba_is_instance_of( $ac, 'Hummingbird\HummingbirdAuthenticationControllerInterface' ) ) {
+					throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdSessionControllerInterface', $ac ), 1 );
+				}
+				$this->__hba_authentication_controller = new $ac( $this );
 			}
 		}
 

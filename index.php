@@ -10,12 +10,17 @@
 		echo '</pre>';
 	}
 
+
 	$hba->setConfig( array(
-		'session' => array(
+		'authentication' => array(
 			'enabled' => true,
+			'allowHTTPBasicAuth' => true,
+			'allowHTTPHeaderAuth' => true,
+			'allowHTTPCookieAuth' => true,
+			'allowSessionAuth' => true,
+			'allowCLIAuth' => true,
 		),
 	) );
-
 
 	try {
 		$hba->run();
@@ -26,6 +31,24 @@
 		echo '</pre>';
 	}
 
+	echo 'BASIC' . "\r\n";
 	echo '<pre>';
-	print_r( $hba );
+	print_r( $hba->runAuthenticationFunction( 'getAuthFromHTTPBasic' ) );
 	echo '</pre>';
+
+
+	echo 'Headers' . "\r\n";
+	echo '<pre>';
+	print_r( $hba->runAuthenticationFunction( 'getAuthFromHeader' ) );
+	echo '</pre>';
+
+	echo 'Cookie' . "\r\n";
+	echo '<pre>';
+	print_r( $hba->runAuthenticationFunction( 'getAuthFromCookie' ) );
+	echo '</pre>';
+
+	echo 'Session' . "\r\n";
+	echo '<pre>';
+	print_r( $hba->runAuthenticationFunction( 'getAuthFromSession' ) );
+	echo '</pre>';
+

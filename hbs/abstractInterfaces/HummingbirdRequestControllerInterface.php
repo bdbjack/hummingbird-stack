@@ -17,5 +17,6 @@
 		public function setCookie( string $key, $value = null, $exp = null );
 		public function unsetCooke( string $key );
 		public function getCurrentUserIP();
-		public function getCurrentUserIPInfo();
+		public function getCurrentUserIPInfo( string $key = '' );
+		public function getCurrentUserIPGeoInfo( string $key = '' );
 	}

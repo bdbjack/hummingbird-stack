@@ -182,13 +182,16 @@
 		}
 
 		function getCurrentUserIP() {
-
+			return $this->_ip->ip();
 		}
 
-		function getCurrentUserIPInfo() {
-
+		function getCurrentUserIPInfo( string $key = '' ) {
+			return $this->_ip->get( $key );
 		}
 
+		function getCurrentUserIPGeoInfo( string $key = '' ) {
+			return $this->_ip->getGeo( $key );
+		}
 
 		public function __get( string $name ) {
 			return array();

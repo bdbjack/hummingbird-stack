@@ -29,13 +29,8 @@
 		),
 		'session' => array(
 			'enabled' => false,
-			'controllerPriority' => array(
-				'\Hummingbird\HummingbirdRedisSessionController',
-				'\Hummingbird\HummingbirdMemCachedSessionController',
-				'\Hummingbird\HummingbirdMemCacheSessionController',
-				'\Hummingbird\HummingbirdDatabaseSessionController',
-				'\Hummingbird\HummingbirdFileSessionController',
-			),
+			'controller' => '\Hummingbird\HummingbirdDefaultSessionController',
+			'cookieName' => 'PHPSESSID',
 		),
 		'databases' => array(
 			'enabled' => true,

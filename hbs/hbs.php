@@ -91,6 +91,7 @@
 			$this->addAction( 'init', array( $this, 'activateControllers' ) );
 			$this->addAction( 'initDatbases', array( $this, 'activateDatabaseControllers' ) );
 			$this->addAction( 'initCache', array( $this, 'activateCacheController' ) );
+			$this->addAction( 'initSession', array( $this, 'activateSessionController' ) );
 		}
 
 		/**
@@ -421,6 +422,18 @@
 				throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdCacheControllerInterface', $cc ), 1 );
 			}
 			$this->__hbs_cache_controller = new $cc( $this );
+		}
+
+		private function activateSessionController() {
+			if ( true == $this->getConfigSetting( 'session', 'enabled' ) && false == __hba_is_cli() ) {
+				$sc = $this->getConfigSetting( 'session', 'controller' );
+				if ( ! __hba_is_instance_of( $sc, 'Hummingbird\HummingbirdSessionControllerInterface' ) ) {
+					throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdSessionControllerInterface', $sc ), 1 );
+				}
+				$sch = new $sc( $this );
+				session_set_save_handler( $sch, true );
+				session_start();
+			}
 		}
 
 		public static function _hba_strip_trailing_slash( $input ) {

@@ -193,6 +193,26 @@
 			return $this->_ip->getGeo( $key );
 		}
 
+		function getCookieDomain() {
+			$host = $this->_get_hostname();
+			if ( ! __hba_is_ip( $host ) ) {
+				$host = '.' . $host;
+			}
+			$portstop = strpos( $host, ':' );
+			if ( false !== $portstop ) {
+				$host = substr( $host, 0, $portstop );
+			}
+			return $host;
+		}
+
+		function getCookiePath() {
+			return ( __hba_is_cli() ) ? '/' : $this->_get_base_uri();
+		}
+
+		function isHttps() {
+			return ( 'https' == $this->_scheme );
+		}
+
 		public function __get( string $name ) {
 			return array();
 		}
@@ -295,22 +315,6 @@
 		private function getCLIURLFromPath( $path = '/', array $query = array() ) {
 			$base = $this->_get_current_script_absolute();
 			return sprintf( '%s %s', $base, $this->getCLIURIFromPath( $path, $query ) );
-		}
-
-		private function getCookieDomain() {
-			$host = $this->_get_hostname();
-			if ( ! __hba_is_ip( $host ) ) {
-				$host = '.' . $host;
-			}
-			$portstop = strpos( $host, ':' );
-			if ( false !== $portstop ) {
-				$host = substr( $host, 0, $portstop );
-			}
-			return $host;
-		}
-
-		private function getCookiePath() {
-			return ( __hba_is_cli() ) ? '/' : $this->_get_base_uri();
 		}
 
 		private function parse_http_method_data( $method ) {

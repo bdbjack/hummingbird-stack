@@ -431,7 +431,7 @@
 					throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdSessionControllerInterface', $sc ), 1 );
 				}
 				$sch = new $sc( $this );
-				session_set_save_handler( $sch, true );
+				call_user_func_array( 'getSessionSaveHandlerCallbackArray', $sch->getSessionSaveHandlerCallbackArray() );
 				session_start();
 			}
 		}

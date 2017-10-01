@@ -9,4 +9,5 @@
 		public function open( string $savePath, string $sessionName );
 		public function read( string $sessionId );
 		public function write( string $sessionId, string $sessionData );
+		public function getSessionSaveHandlerCallbackArray();
 	}

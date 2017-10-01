@@ -10,6 +10,7 @@
 
 		function close() {
 			// do nothing because we're depending on the cache
+			return true;
 		}
 
 		function destroy( string $sessionId ) {
@@ -19,10 +20,12 @@
 
 		function gc( int $maxlifetime ) {
 			// do nothing because we're depending on the cache
+			return true;
 		}
 
 		function open( string $savePath, string $sessionName ) {
 			// do nothing because we're depending on the cache
+			return true;
 		}
 
 		function read( string $sessionId ) {

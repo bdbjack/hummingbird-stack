@@ -88,6 +88,9 @@
 
 				case 'database':
 					$bean = $this->_get_bean_for_key( $key );
+					if ( ! is_a( $bean, '\RedBeanPHP\OODBBean' ) ) {
+						return false;
+					}
 					$bean->value = serialize( $value );
 					$bean->expires = time() + $exp;
 					$beanId = $this->hba->runDatabaseFunction( 'default', 'store', $bean );
@@ -286,6 +289,9 @@
 			$bean = $this->hba->runDatabaseFunction( 'default', 'findOne', __hba_get_array_key( 'beanType', $this->_settings ), 'cache_key = :cacheKey', array( 'cacheKey' => $cacheKey ) );
 			if ( ! is_a( $bean, '\RedBeanPHP\OODBBean') ) {
 				$bean = $this->hba->runDatabaseFunction( 'default', 'dispense', __hba_get_array_key( 'beanType', $this->_settings ) );
+				if ( ! is_a( $bean, '\RedBeanPHP\OODBBean') ) {
+					return false;
+				}
 				$bean->cacheKey = $cacheKey;
 			}
 			return $bean;

@@ -197,6 +197,7 @@
 			$this->doAction( 'init' );
 			$this->doAction( 'initDatbases' );
 			$this->doAction( 'initCache' );
+			$this->doAction( 'initSession' );
 		}
 
 		public function setBaseDir( $dir ) {
@@ -431,7 +432,7 @@
 					throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdSessionControllerInterface', $sc ), 1 );
 				}
 				$sch = new $sc( $this );
-				call_user_func_array( 'getSessionSaveHandlerCallbackArray', $sch->getSessionSaveHandlerCallbackArray() );
+				call_user_func_array( 'session_set_save_handler', $sch->getSessionSaveHandlerCallbackArray() );
 				session_start();
 			}
 		}

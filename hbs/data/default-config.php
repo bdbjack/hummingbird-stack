@@ -33,7 +33,7 @@
 			'cookieName' => 'PHPSESSID',
 		),
 		'databases' => array(
-			'enabled' => true,
+			'enabled' => false,
 			'servers' => array(
 				'default' => array(
 					'type' => 'sqlite',

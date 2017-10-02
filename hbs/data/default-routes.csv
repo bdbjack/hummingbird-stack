@@ -1,0 +1,8 @@
+method,pattern,action,authRequired,redirectAuthenticated,title
+GET,^/(.*)$,404,FALSE,FALSE,Unrecognized Request
+POST,^/(.*)$,404,FALSE,FALSE,Unrecognized Request
+PUT,^/(.*)$,404,FALSE,FALSE,Unrecognized Request
+DELETE,^/(.*)$,404,FALSE,FALSE,Unrecognized Request
+HEAD,^/(.*)$,404,FALSE,FALSE,Unrecognized Request
+PATCH,^/(.*)$,404,FALSE,FALSE,Unrecognized Request
+CLI,^/(.*)$,404,FALSE,FALSE,Unrecognized Request

@@ -29,6 +29,16 @@
 		private $__hbs_database_controllers = array();
 		private $__hbs_cache_controller = null;
 		private $__hba_authentication_controller = null;
+		private $__hba_current_route = array(
+			'method' => '',
+			'pattern' => '',
+			'action' => '',
+			'authRequired' => false,
+			'redirectAuthenticated' => false,
+			'title' => false,
+			'passthrough' => array(),
+			'query' => array(),
+		);
 
 		/**
 		 * Initializes the application by loading all of the relevant files from the subdirectories
@@ -89,11 +99,15 @@
 				}
 			}
 			$this->setConfig( $defaultConfig );
+			$this->addAction( 'init', array( $this, 'activateNewrelicTransaction' ), -1  );
 			$this->addAction( 'init', array( $this, 'activateControllers' ) );
 			$this->addAction( 'initDatbases', array( $this, 'activateDatabaseControllers' ) );
 			$this->addAction( 'initCache', array( $this, 'activateCacheController' ) );
 			$this->addAction( 'initSession', array( $this, 'activateSessionController' ) );
 			$this->addAction( 'initAuthentication', array( $this, 'activateAuthenticationController' ) );
+			$this->addAction( 'initRouting', array( $this, 'prePopulateRoutes' ), -1 );
+			$this->addAction( 'initRouting', array( $this, 'setCurrentRouteInformation' ), 1000000 );
+			$this->addAction( 'initRouting', array( $this, 'setNewRelicInformation' ), 1000001 );
 		}
 
 		/**
@@ -149,8 +163,27 @@
 			usort( $this->_filters[ $key ], array( get_called_class(), '_hba_sort_by_priority' ) );
 		}
 
-		public function addRoute() {
-
+		public function addRoute( $method, $pattern, $action, $authRequired, $redirectAuthenticated, $title, $overwrite = false ) {
+			if ( ! is_array( $this->_routes ) ) {
+				$this->_routes = array();
+			}
+			$method = strtoupper( $method );
+			if ( ! array_key_exists( $method, $this->_routes ) || ! is_array( $this->_routes[ $method ] ) ) {
+				$this->_routes[ $method ] = array();
+			}
+			if ( ! array_key_exists( $pattern, $this->_routes[ $method ] ) || true == $overwrite ) {
+				$this->_routes[ $method ][ $pattern ] = array(
+					'action' => $action,
+					'authRequired' => ( true == $authRequired && true == $this->getConfigSetting( 'authentication', 'enabled' ) ),
+					'redirectAuthenticated' => ( true == $redirectAuthenticated && true == $this->getConfigSetting( 'authentication', 'enabled' ) ) ? $this->getConfigSetting( 'application', 'authRedirectUri' ) : false,
+					'title' => $title,
+				);
+				uksort( $this->_routes[ $method ], array( get_called_class(), 'sortRoutesByKey' ) );
+			}
+			else {
+				return false;
+			}
+			return true;
 		}
 
 		public function addDatabase( string $key, string $type = 'sqlite', string $host = '', int $port = 0, string $name = '/tmp/dbfile.db', string $user = '', string $pass = '', string $prefix = '', bool $frozen = false, bool $readonly = false, bool $overwrite = false ) {
@@ -201,6 +234,10 @@
 			$this->doAction( 'initCache' );
 			$this->doAction( 'initSession' );
 			$this->doAction( 'initAuthentication' );
+			$this->doAction( 'initRouting' );
+			if ( extension_loaded( 'newrelic' ) && true == $this->getConfigSetting( 'newrelic', 'enabled' ) ) {
+				newrelic_end_of_transaction();
+			}
 		}
 
 		public function setBaseDir( $dir ) {
@@ -317,6 +354,11 @@
 				}
 				else {
 					$args = array();
+				}
+				if ( extension_loaded( 'newrelic' ) && true == $this->getConfigSetting( 'newrelic', 'enabled' ) ) {
+					newrelic_record_custom_event( sprintf( 'action%s', ucfirst( $key ) ), array(
+						'actions' => count( $this->_actions[ $key ] ),
+					) );
 				}
 				foreach ( $this->_actions[ $key ] as $action ) {
 					$function = ( is_array( $action ) && array_key_exists( 'function', $action ) ) ? $action['function'] : '';
@@ -472,6 +514,91 @@
 			}
 		}
 
+		private function prePopulateRoutes() {
+			$rf = $this->getExistingAbsoluteDirOfFile( '/data/default-routes.csv' );
+			if ( ! __hba_is_empty( $rf ) ) {
+				$routesCsv = file_get_contents( $rf );
+				$rowsCsv = explode( "\n", $routesCsv );
+				if ( __hba_can_loop( $rowsCsv ) ) {
+					$headerRow = array_shift( $rowsCsv );
+					$keys = str_getcsv( $headerRow );
+					foreach ( $rowsCsv as $row ) {
+						$array = str_getcsv( $row );
+						if ( count( $keys ) == count( $array ) ) {
+							$data = array_combine( $keys, $array );
+							$this->addRoute(
+								__hba_get_array_key( 'method', $data ),
+								__hba_get_array_key( 'pattern', $data ),
+								__hba_get_array_key( 'action', $data ),
+								( 'TRUE' == __hba_get_array_key( 'authRequired', $data ) ),
+								( 'TRUE' == __hba_get_array_key( 'redirectAuthenticated', $data ) ),
+								__hba_get_array_key( 'title', $data ),
+								true
+							);
+						}
+					}
+				}
+			}
+		}
+
+		private function setCurrentRouteInformation() {
+			$method = strtoupper( $this->runRequestFunction( 'getRequestMethod' ) );
+			$methodRoutes = __hba_get_array_key( $method, $this->_routes );
+			$path = $this->runRequestFunction( 'getCurrentPath' );
+			$fp = '';
+			$passthrough = array();
+			if ( array_key_exists( $path, $methodRoutes ) ) {
+				$r = __hba_get_array_key( $path, $methodRoutes, array() );
+				$fp = $path;
+			}
+			else {
+				foreach ( $methodRoutes as $pattern => $info ) {
+					$pat = __hba_sanitize_regex( $pattern );
+					if ( intval( preg_match( $pat, $path, $matches ) ) > 0 ) {
+						$r = __hba_get_array_key( $pattern, $methodRoutes, array() );
+						$fp = $pattern;
+						array_shift( $matches );
+						array_replace_recursive( $passthrough, $matches );
+						break;
+					}
+				}
+			}
+			$this->__hba_current_route['method'] = $method;
+			$this->__hba_current_route['pattern'] = $fp;
+			$this->__hba_current_route['action'] = __hba_get_array_key( 'action', $r, '404' );
+			$this->__hba_current_route['authRequired'] = ( true == __hba_get_array_key( 'authRequired', $r, false ) );
+			$this->__hba_current_route['redirectAuthenticated'] = __hba_get_array_key( 'redirectAuthenticated', $r, false );
+			$this->__hba_current_route['title'] = __hba_get_array_key( 'title', $r, 'Unrecognized Request' );
+			$this->__hba_current_route['passthrough'] = $passthrough;
+			$this->__hba_current_route['query'] = $this->runRequestFunction( 'getQueryByMethod', $method );
+		}
+
+		private function setNewRelicInformation() {
+			$tname = sprintf( '%s %s', strtoupper( __hba_get_array_key( 'method', $this->__hba_current_route, 'UNKNOWN' ) ), __hba_get_array_key( 'pattern', $this->__hba_current_route, '' ) );
+			if ( extension_loaded( 'newrelic' ) && true == $this->getConfigSetting( 'newrelic', 'enabled' ) ) {
+				newrelic_background_job( __hba_is_cli() );
+				newrelic_ignore_apdex( __hba_is_cli() );
+				newrelic_capture_params( true );
+				newrelic_name_transaction( $tname );
+				newrelic_add_custom_parameter( 'route_pattern', __hba_get_array_key( 'pattern', $this->__hba_current_route, '' ) );
+				newrelic_add_custom_parameter( 'user_is_logged_in', ( true == $this->runAuthenticationFunction( 'isLoggedIn' ) ) ? 'Yes' : 'No' );
+				newrelic_add_custom_parameter( 'user_id', $this->runAuthenticationFunction( 'getCurrentUserId' ) );
+			}
+		}
+
+		private function activateNewrelicTransaction() {
+			if ( extension_loaded( 'newrelic' ) && true == $this->getConfigSetting( 'newrelic', 'enabled' ) ) {
+				newrelic_set_appname( $this->getConfigSetting( 'newrelic', 'apmName' ) );
+				$license = $this->getConfigSetting( 'newrelic', 'apmLicense' );
+				if ( ! __hba_is_empty( $license ) ) {
+					newrelic_start_transaction( $this->getConfigSetting( 'newrelic', 'apmName' ), $license );
+				}
+				else {
+					newrelic_start_transaction( $this->getConfigSetting( 'newrelic', 'apmName' ) );
+				}
+			}
+		}
+
 		public static function _hba_strip_trailing_slash( $input ) {
 			if ( '/' == substr( $input, -1 ) || '\\' == substr( $input, -1 ) ) {
 				$input = substr( $input, 0, strlen( $input ) - 1 );
@@ -493,6 +620,25 @@
 				return 0;
 			}
 			return ( $pa < $pb ) ? -1 : 1;
+		}
+
+		private static function sortRoutesByKey( $a, $b ) {
+			if ( $a == $b ) {
+				return 0;
+			}
+			if ( self::patternIsExactMatch( $a ) && ! self::patternIsExactMatch( $b ) ) {
+				return 1;
+			}
+			else if ( ! self::patternIsExactMatch( $a ) && self::patternIsExactMatch( $b ) ) {
+				return -1;
+			}
+			else {
+				return ( strlen( $a ) < strlen( $b ) ) ? -1 : 1;
+			}
+		}
+
+		private static function patternIsExactMatch( $pattern ) {
+			return ! ( preg_match("/^\/.+\/[a-z]*$/i", $pattern ) );
 		}
 
 		public static function CheckRequirements( $loaded = false ) {

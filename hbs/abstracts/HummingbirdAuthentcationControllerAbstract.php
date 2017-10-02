@@ -41,8 +41,9 @@
 		}
 
 		function getAuthFromCookie() {
-			$authorization = $this->hba->runRequestFunction( 'getCookie', '' );
-			if ( ! __hba_is_empty( $authorization ) && __hba_beginning_matches( 'Basic ', $authorization ) ) {
+			$ac = sprintf( '%s_ac', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) );
+			$authorization = $this->hba->runRequestFunction( 'getCookie', $ac );
+			if ( ! __hba_is_empty( $authorization ) ) {
 				$authraw = $this->hashed_from( $authorization );
 				list( $user, $pass ) = explode( ':', $authraw );
 			}
@@ -56,8 +57,11 @@
 			);
 		}
 
-		function setAuthToCookie() {
-
+		function setAuthToCookie( string $username = '', string $password = '' ) {
+			$ac = sprintf( '%s_ac', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) );
+			$as = sprintf( '%s:%s', $username, $password );
+			$hash = $this->hashed_to( $as );
+			return $this->hba->runRequestFunction( 'setCookie', $ac, $hash );
 		}
 
 		function getAuthFromSession() {
@@ -69,19 +73,36 @@
 			);
 		}
 
-		function setAuthToSession() {
-
+		function setAuthToSession( string $username = '', string $password = '' ) {
+			$sauk = sprintf( '%s_user', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) );
+			$sapk = sprintf( '%s_pass', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) );
+			$_SESSION[ $sauk ] = $username;
+			$_SESSION[ $sapk ] = $password;
+			return $this->hba->getConfigSetting( 'session', 'enabled' );
 		}
 
 		function getAuthFromCLI() {
+			$vars = getopt( '', array( 'user:', 'pass:' ) );
 			return array(
-				'user' => '',
-				'pass' => '',
+				'user' => __hba_get_array_key( 'user', $vars ),
+				'pass' => __hba_get_array_key( 'pass', $vars ),
 			);
 		}
 
 		function getAuthSessionId() {
-
+			$sk = sprintf( '%s_auth_session', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) );
+			$vars = getopt( '', array( 'authsession:' ) );
+			$auth = __hba_get_array_key( $sk, $_SESSION, '' );
+			if ( __hba_is_empty( $auth ) ) {
+				$auth = $this->hashed_from( $this->hba->runRequestFunction( 'getCookie', $sk ) );
+			}
+			if ( __hba_is_empty( $auth ) ) {
+				$auth = $this->hba->runRequestFunction( 'getRequestHeaders', 'X-Auth-Session' );
+			}
+			if ( __hba_is_empty( $auth ) ) {
+				$auth = __hba_get_array_key( 'authsession', $vars, '' );
+			}
+			return $auth;
 		}
 
 		protected function hashed_to( $val ) {

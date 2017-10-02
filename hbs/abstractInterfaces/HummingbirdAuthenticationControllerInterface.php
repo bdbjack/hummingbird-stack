@@ -8,9 +8,9 @@
 		public function getAuthFromHTTPBasic();
 		public function getAuthFromHeader();
 		public function getAuthFromCookie();
-		public function setAuthToCookie();
+		public function setAuthToCookie( string $username = '', string $password = '' );
 		public function getAuthFromSession();
-		public function setAuthToSession();
+		public function setAuthToSession( string $username = '', string $password = '' );
 		public function getAuthFromCLI();
 		public function getAuthSessionId();
 	}

@@ -36,7 +36,6 @@
 	print_r( $hba->runAuthenticationFunction( 'getAuthFromHTTPBasic' ) );
 	echo '</pre>';
 
-
 	echo 'Headers' . "\r\n";
 	echo '<pre>';
 	print_r( $hba->runAuthenticationFunction( 'getAuthFromHeader' ) );
@@ -50,5 +49,10 @@
 	echo 'Session' . "\r\n";
 	echo '<pre>';
 	print_r( $hba->runAuthenticationFunction( 'getAuthFromSession' ) );
+	echo '</pre>';
+
+	echo 'CLI' . "\r\n";
+	echo '<pre>';
+	print_r( $hba->runAuthenticationFunction( 'getAuthFromCLI' ) );
 	echo '</pre>';
 

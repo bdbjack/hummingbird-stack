@@ -15,7 +15,7 @@
 		public function getURLFromPath( string $path = '/', array $query = array() );
 		public function getCookie( string $key, $default = null );
 		public function setCookie( string $key, $value = null, $exp = null );
-		public function unsetCooke( string $key );
+		public function unsetCookie( string $key );
 		public function getCookieDomain();
 		public function getCookiePath();
 		public function isHttps();

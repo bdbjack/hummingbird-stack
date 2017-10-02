@@ -13,10 +13,34 @@
 		}
 
 		function isLoggedIn() {
-			return false;
+			return ( ! __hba_is_empty( $this->getCurrentUserId() ) );
+		}
+
+		function getCurrentUserId() {
+			$si = $this->getAuthSessionId();
+			$ck = sprintf( '%s_authsession_%s', md5( $this->hba->getConfigSetting( 'application', 'name' ) ), $si );
+			$ci = $this->hba->runCacheFunction( 'get', $ck );
+			if (
+				is_object( $ci )
+				&& property_exists( $ci, 'id' )
+				&& $si == $ci->id
+				&& property_exists( $ci, 'userIP' )
+				&& $ci->userIP == $this->hba->runRequestFunction( 'getCurrentUserIP' )
+				&& property_exists( $ci, 'userAgent' )
+				&& $ci->userAgent == $this->hba->runRequestFunction( 'getRequestHeaders', 'User-Agent' )
+				&& property_exists( $ci, 'sessionTime' )
+				&& $ci->sessionTime <= time()
+				&& time() <= $ci->sessionTime + ( 86400 * 30 )
+			) {
+				return $ci->userId;
+			}
+			return null;
 		}
 
 		function getAuthFromHTTPBasic() {
+			if ( true !== $this->hba->getConfigSetting( 'authentication', 'enabled' ) || true !== $this->hba->getConfigSetting( 'authentication', 'allowHTTPBasicAuth' ) ) {
+				return false;
+			}
 			$authorization = $this->hba->runRequestFunction( 'getRequestHeaders', 'Authorization' );
 			if ( ! __hba_is_empty( $authorization ) && __hba_beginning_matches( 'Basic ', $authorization ) ) {
 				$auth64 = substr( $authorization, strlen( 'Basic ' ) );
@@ -34,6 +58,9 @@
 		}
 
 		function getAuthFromHeader() {
+			if ( true !== $this->hba->getConfigSetting( 'authentication', 'enabled' ) || true !== $this->hba->getConfigSetting( 'authentication', 'allowHTTPHeaderAuth' ) ) {
+				return false;
+			}
 			return array(
 				'user' => $this->hba->runRequestFunction( 'getRequestHeaders', 'X-Auth-User' ),
 				'pass' => $this->hba->runRequestFunction( 'getRequestHeaders', 'X-Auth-Pass' ),
@@ -41,6 +68,9 @@
 		}
 
 		function getAuthFromCookie() {
+			if ( true !== $this->hba->getConfigSetting( 'authentication', 'enabled' ) || true !== $this->hba->getConfigSetting( 'authentication', 'allowHTTPCookieAuth' ) ) {
+				return false;
+			}
 			$ac = sprintf( '%s_ac', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) );
 			$authorization = $this->hba->runRequestFunction( 'getCookie', $ac );
 			if ( ! __hba_is_empty( $authorization ) ) {
@@ -65,6 +95,9 @@
 		}
 
 		function getAuthFromSession() {
+			if ( true !== $this->hba->getConfigSetting( 'authentication', 'enabled' ) || true !== $this->hba->getConfigSetting( 'authentication', 'allowSessionAuth' ) ) {
+				return false;
+			}
 			$sauk = sprintf( '%s_user', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) );
 			$sapk = sprintf( '%s_pass', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) );
 			return array(
@@ -82,6 +115,9 @@
 		}
 
 		function getAuthFromCLI() {
+			if ( true !== $this->hba->getConfigSetting( 'authentication', 'enabled' ) || true !== $this->hba->getConfigSetting( 'authentication', 'allowCLIAuth' ) ) {
+				return false;
+			}
 			$vars = getopt( '', array( 'user:', 'pass:' ) );
 			return array(
 				'user' => __hba_get_array_key( 'user', $vars ),
@@ -104,6 +140,36 @@
 				$auth = __hba_get_array_key( 'authsession', $vars, '' );
 			}
 			return $auth;
+		}
+
+		function createAuthSession( $userId = null, bool $store = true ) {
+			if ( __hba_is_empty( $userId ) ) {
+				return false;
+			}
+			$aso = new \stdClass();
+			$aso->id = md5( time() * rand( 1, 100 ) );
+			$aso->userId = $userId;
+			$aso->userIP = $this->hba->runRequestFunction( 'getCurrentUserIP' );
+			$aso->userAgent = $this->hba->runRequestFunction( 'getRequestHeaders', 'User-Agent' );
+			$aso->sessionTime = time();
+			$ck = sprintf( '%s_authsession_%s', md5( $this->hba->getConfigSetting( 'application', 'name' ) ), $aso->id );
+			$storedInCache = $this->hba->runCacheFunction( 'set', $ck, $aso );
+			if ( true == $storedInCache && true == $store ) {
+				$sk = sprintf( '%s_auth_session', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) );
+				$_SESSION[ $sk ] = $aso->id;
+				$this->hba->runRequestFunction( 'setCookie', $sk, $this->hashed_to( $aso->id ) );
+			}
+			return $aso->id;
+		}
+
+		function destroyAuthSession() {
+			$si = $this->getAuthSessionId();
+			$ck = sprintf( '%s_authsession_%s', md5( $this->hba->getConfigSetting( 'application', 'name' ) ), $si );
+			$sk = sprintf( '%s_auth_session', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) );
+			$ci = $this->hba->runCacheFunction( 'trash', $ck );
+			unset( $_SESSION[ $sk ] );
+			$this->hba->runRequestFunction( 'unsetCookie', $sk );
+			return true;
 		}
 
 		protected function hashed_to( $val ) {

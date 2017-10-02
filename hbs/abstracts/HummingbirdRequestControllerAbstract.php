@@ -176,7 +176,7 @@
 			}
 		}
 
-		function unsetCooke( string $key ) {
+		function unsetCookie( string $key ) {
 			$exp = time() - 3600;
 			$this->setCookie( $key, '', $exp );
 		}

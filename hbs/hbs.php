@@ -343,6 +343,33 @@
 			return call_user_func_array( array( $this->__hba_authentication_controller, $function ), $args );
 		}
 
+		public function getHTTPRequestResults( string $method ) {
+			$args = func_get_args();
+			array_shift( $args );
+			switch( strtoupper( $method ) ) {
+				case 'GET':
+					return forward_static_call_array( array( '\Hummingbird\HummingbirdHTTPRequestInterface', 'GET' ), $args );
+					break;
+
+				case 'POST':
+					return forward_static_call_array( array( '\Hummingbird\HummingbirdHTTPRequestInterface', 'POST' ), $args );
+					break;
+
+				case 'PUT':
+					return forward_static_call_array( array( '\Hummingbird\HummingbirdHTTPRequestInterface', 'PUT' ), $args );
+					break;
+
+				case 'DELETE':
+					return forward_static_call_array( array( '\Hummingbird\HummingbirdHTTPRequestInterface', 'DELETE' ), $args );
+					break;
+
+				default:
+					return forward_static_call_array( array( '\Hummingbird\HummingbirdHTTPRequestInterface', 'REQUEST' ), $args );
+					break;
+			}
+			return false;
+		}
+
 		private function doAction( $key ) {
 			if (
 				array_key_exists( $key, $this->_actions )

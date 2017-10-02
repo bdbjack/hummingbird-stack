@@ -72,3 +72,18 @@
 		$input = filter_var( $input, FILTER_VALIDATE_IP );
 		return ( true == filter_var( $input, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) || true == filter_var( $input, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) );
 	}
+
+	function __hba_levenshtein_ratio( string $string1, string $string2 ) {
+		$maxLen = ( strlen( $string1 ) > strlen( $string2 ) ) ? strlen( $string1 ) : strlen( $string2 );
+		return round( ( 1 - levenshtein( $string1, $string2 ) / $maxLen ) * 100 );
+	}
+
+	function __hba_written_similar( string $string1, string $string2, float $threshold = 0.80, bool $caseInsensative = true ) {
+		$percent = __hba_get_written_similarity_percent( $string1, $string2, $caseInsensative );
+		return ( $percent >= $threshold );
+	}
+
+	function __hba_sound_similar( string $string1, string $string2, float $threshold = 0.80 ) {
+		$percent = __hba_get_sounding_similarity_percent( $string1, $string2 );
+		return ( $percent >= $threshold );
+	}

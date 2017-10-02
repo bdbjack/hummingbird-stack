@@ -1,5 +1,4 @@
 <?php
-
 	function __hba_sanitize_absint( $input ) {
 		if ( ! is_numeric( $input ) || is_empty( $input ) ) {
 			return 0;

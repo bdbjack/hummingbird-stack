@@ -464,8 +464,10 @@
 			else {
 				throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdRequestControllerInterface', $rcc ), 1 );
 			}
-			set_error_handler( array( $this->__hbs_error_controller, 'handleError' ), E_ALL | E_STRICT );
-			set_exception_handler( array( $this->__hbs_error_controller, $this->__hbs_error_controller->getExceptionHandlerFunctionName() ) );
+			if ( false !== $this->getConfigSetting( 'application', 'enableErrorCapture' ) ) {
+				set_error_handler( array( $this->__hbs_error_controller, 'handleError' ), E_ALL | E_STRICT );
+				set_exception_handler( array( $this->__hbs_error_controller, $this->__hbs_error_controller->getExceptionHandlerFunctionName() ) );
+			}
 			$this->baseUri = $this->runRequestFunction( 'getURIFromPath', '/' );
 			$this->baseUrl = $this->runRequestFunction( 'getURLFromPath', '/' );
 		}
@@ -681,6 +683,7 @@
 			);
 			$postLoadRequirements = array(
 				'\libphonenumber\PhoneNumberUtil' => 'class',
+				'\libphonenumber\PhoneNumberFormat' => 'class'
 			);
 			$return = new \stdClass();
 			$return->status = true;

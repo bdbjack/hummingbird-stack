@@ -13,6 +13,7 @@
 			'databaseController' => '\Hummingbird\HummingbirdDefaultDatabaseController',
 			'cacheController' => '\Hummingbird\HummingbirdDefaultCacheController',
 			'tmpDir' => realpath( '/tmp/' ),
+			'enableErrorCapture' => true,
 		),
 		'authentication' => array(
 			'enabled' => false,

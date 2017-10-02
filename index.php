@@ -56,3 +56,8 @@
 	print_r( $hba->runAuthenticationFunction( 'getAuthFromCLI' ) );
 	echo '</pre>';
 
+	echo 'AuthSessionID' . "\r\n";
+	echo '<pre>';
+	print_r( $hba->runAuthenticationFunction( 'getAuthSessionId' ) );
+	echo '</pre>';
+

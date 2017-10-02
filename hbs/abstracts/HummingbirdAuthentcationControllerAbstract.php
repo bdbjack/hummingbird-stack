@@ -94,7 +94,8 @@
 			$vars = getopt( '', array( 'authsession:' ) );
 			$auth = __hba_get_array_key( $sk, $_SESSION, '' );
 			if ( __hba_is_empty( $auth ) ) {
-				$auth = $this->hashed_from( $this->hba->runRequestFunction( 'getCookie', $sk ) );
+				$cookie = $this->hba->runRequestFunction( 'getCookie', $sk );
+				$auth = ( __hba_is_empty( $cookie ) ) ? '' : $this->hashed_from( $cookie );
 			}
 			if ( __hba_is_empty( $auth ) ) {
 				$auth = $this->hba->runRequestFunction( 'getRequestHeaders', 'X-Auth-Session' );
@@ -107,11 +108,11 @@
 
 		protected function hashed_to( $val ) {
 			global $config;
-			return base64_encode( mcrypt_encrypt( MCRYPT_RIJNDAEL_256, substr( md5( $this->hba->getConfigSetting( 'application', 'name' ) ), 0, 8 ), $val, MCRYPT_MODE_ECB ) );
+			return base64_encode( mcrypt_encrypt( MCRYPT_RIJNDAEL_256, substr( md5( $this->hba->getConfigSetting( 'application', 'name' ) ), 0, 16 ), $val, MCRYPT_MODE_ECB ) );
 		}
 
 		protected function hashed_from( $val ) {
 			global $config;
-			return trim( mcrypt_decrypt( MCRYPT_RIJNDAEL_256, substr( md5( $this->hba->getConfigSetting( 'application', 'name' ) ), 0, 8 ), base64_decode( $val ), MCRYPT_MODE_ECB ) );
+			return trim( mcrypt_decrypt( MCRYPT_RIJNDAEL_256, substr( md5( $this->hba->getConfigSetting( 'application', 'name' ) ), 0, 16 ), base64_decode( $val ), MCRYPT_MODE_ECB ) );
 		}
 	}

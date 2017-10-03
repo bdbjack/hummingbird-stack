@@ -65,6 +65,7 @@
 		),
 		'smtp' => array(
 			'enabled' => true,
+			'controller' => '\Hummingbird\HummingbirdDefaultEmailController',
 			'host' => 'localhost',
 			'port' => 25,
 			'auth' => false,

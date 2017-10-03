@@ -29,6 +29,7 @@
 		private $__hbs_database_controllers = array();
 		private $__hbs_cache_controller = null;
 		private $__hba_authentication_controller = null;
+		private $__hba_email_controller = null;
 		private $__hba_current_route = array(
 			'method' => '',
 			'pattern' => '',
@@ -343,6 +344,24 @@
 			return call_user_func_array( array( $this->__hba_authentication_controller, $function ), $args );
 		}
 
+		public function runSMTPFunction( string $function ) {
+			$args = func_get_args();
+			array_shift( $args );
+			if ( false == $this->getConfigSetting( 'smtp', 'enabled' ) ) {
+				return false;
+			}
+			try {
+				return call_user_func_array( array( $this->__hba_email_controller, $function ), $args );
+			}
+			catch ( Exception $e ) {
+				$bt = debug_backtrace();
+				$trace = array_shift( $bt );
+				$this->runErrorFunction( 'writeToLogFile', sprintf( 'SMTP function "%s" failed: %s IN File %s Line %d', $function, $e->getMessage(), __hba_get_array_key( 'file', $trace ), __hba_get_array_key( 'line', $trace ) ) );
+				return false;
+			}
+			return false;
+		}
+
 		public function getHTTPRequestResults( string $method ) {
 			$args = func_get_args();
 			array_shift( $args );
@@ -470,6 +489,15 @@
 			}
 			$this->baseUri = $this->runRequestFunction( 'getURIFromPath', '/' );
 			$this->baseUrl = $this->runRequestFunction( 'getURLFromPath', '/' );
+			if ( true == $this->getConfigSetting( 'smtp', 'enabled' ) ) {
+				$ec = $this->getConfigSetting( 'smtp', 'controller' );
+				if ( __hba_is_instance_of( $ec, 'Hummingbird\HummingbirdEmailControllerInterface' ) ) {
+					$this->__hba_email_controller = new $ec( $this );
+				}
+				else {
+					throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdEmailControllerInterface', $ec ), 1 );
+				}
+			}
 		}
 
 		private function activateDatabaseControllers() {
@@ -683,7 +711,8 @@
 			);
 			$postLoadRequirements = array(
 				'\libphonenumber\PhoneNumberUtil' => 'class',
-				'\libphonenumber\PhoneNumberFormat' => 'class'
+				'\libphonenumber\PhoneNumberFormat' => 'class',
+				'\PHPMailer\PHPMailer\PHPMailer' => 'class',
 			);
 			$return = new \stdClass();
 			$return->status = true;

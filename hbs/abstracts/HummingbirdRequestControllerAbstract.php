@@ -63,6 +63,7 @@
 			}
 			$this->_cli = __hba_get_array_key( 'query', $this->getCLIInfo(), array() );
 			$this->_ip = new \Hummingbird\HummingbirdIPInterface();
+			$this->_ip = $this->hba->doFilter( 'filterIP', $this->_ip );
 			if ( __hba_is_cli() ) {
 				$this->_method = 'CLI';
 				$this->_protocol = 'PHP';

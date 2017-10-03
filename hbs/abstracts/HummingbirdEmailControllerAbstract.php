@@ -21,6 +21,7 @@
 				$this->mailer->SMTPSecure = $this->hba->getConfigSetting( 'smtp', 'encrypt' );
 			}
 			$this->mailer->SMTPKeepAlive = true;
+			$this->mailer = $this->hba->doFilter( 'phpmailer_init', $this->mailer );
 		}
 
 		function send( string $subject = '', string $body = '', string $altBody = '', string $sender = '', string $senderName = '', array $recipients = array(), array $cc = array(), $bcc = array(), array $attachments = array() ) {

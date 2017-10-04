@@ -43,84 +43,53 @@ And once you have setup your app using the API's below, run the application as f
 
 ## Configurable Settings
 
-By default, the application comes with the following settings:
+Most of the application's default settings can be overwritten by simply using the `HummingbirdApp::setConfig` API, but certain settings such as adding databases should use their own specific API's.
+
+The following is an example application which has been renamed, has `Memcached` setup, uses PHP Sessions, and uses a local MySQL / MariaDB database.
 
 ```php
 <?php
-	$settings = array(
+	$appSettings = array(
 		'application' => array(
-			'name' => 'Hummingbird Application',
-			'timezone' => 'UTC',
-			'debug' => true,
-			'language' => 'EN',
-			'feedbackController' => '\Hummingbird\HummingbirdDefaultFeedbackController',
-			'errorController' => '\Hummingbird\HummingbirdDefaultErrorController',
-			'requestController' => '\Hummingbird\HummingbirdDefaultRequestController',
-			'databaseController' => '\Hummingbird\HummingbirdDefaultDatabaseController',
-			'cacheController' => '\Hummingbird\HummingbirdDefaultCacheController',
-			'tmpDir' => realpath( '/tmp/' ),
-			'enableErrorCapture' => true,
-		),
-		'authentication' => array(
-			'enabled' => false,
-			'controller' => '\Hummingbird\HummingbirdDefaultAuthenticationController',
-			'allowHTTPBasicAuth' => false,
-			'allowHTTPHeaderAuth' => false,
-			'allowHTTPCookieAuth' => false,
-			'allowSessionAuth' => false,
-			'allowCLIAuth' => false,
-			'authRedirectUri' => '/login/',
+			'name' => 'Example Application',
+			'debug' => false,
 		),
 		'newrelic' => array(
 			'enabled' => true,
-			'apmName' => 'Hummingbird Application',
-			'apmLicense' => null,
+			'apmName' => 'Example Application',
 		),
 		'session' => array(
-			'enabled' => false,
-			'controller' => '\Hummingbird\HummingbirdDefaultSessionController',
-			'cookieName' => 'PHPSESSID',
+			'enabled' => true,
 		),
 		'databases' => array(
 			'enabled' => false,
 			'servers' => array(
 				'default' => array(
-					'type' => 'sqlite',
-					'host' => '',
-					'port' => null,
-					'name' => '/tmp/dbfile.db',
-					'user' => null,
-					'pass' => null,
-					'prefix' => '',
+					'type' => 'mysql',
+					'host' => 'localhost',
+					'port' => 3306,
+					'name' => 'example',
+					'user' => 'root',
+					'pass' => '',
+					'prefix' => 'exp_',
 					'frozen' => false,
 					'readonly' => false,
 				),
 			),
 		),
-		'memcache' => array(
-			'enabled' => false,
-			'servers' => array(),
-		),
 		'memcached' => array(
-			'enabled' => false,
-			'servers' => array(),
-		),
-		'redis' => array(
-			'enabled' => false,
-			'servers' => array(),
-		),
-		'smtp' => array(
 			'enabled' => true,
-			'controller' => '\Hummingbird\HummingbirdDefaultEmailController',
-			'host' => 'localhost',
-			'port' => 25,
-			'auth' => false,
-			'user' => null,
-			'pass' => null,
-			'encrypt' => null,
-			'senders' => array(),
+			'servers' => array(
+				array(
+					'host' => 'localhost',
+					'port' => 11211,
+					'priority' => 10,
+				),
+			),
 		),
 	);
+
+	/** Set the configuration in the App */
+	$hba->setConfig( $appSettings );
 ```
 
-Most settings can be overwritten by simply using the `HummingbirdApp::setConfig` API, but certain settings such as adding databases should use their own specific API's.

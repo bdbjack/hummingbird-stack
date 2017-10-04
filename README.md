@@ -62,7 +62,7 @@ The following is an example application which has been renamed, has `Memcached` 
 			'enabled' => true,
 		),
 		'databases' => array(
-			'enabled' => false,
+			'enabled' => true,
 			'servers' => array(
 				'default' => array(
 					'type' => 'mysql',

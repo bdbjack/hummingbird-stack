@@ -437,6 +437,10 @@
 			return true;
 		}
 
+		private function hasAction( $key ) {
+			return ( __hba_can_loop( __hba_get_array_key( $key, $this->_actions, array() ) ) );
+		}
+
 		private function getExistingAbsoluteDirOfFile( $relativePath = '/', $directory = false ) {
 			$file = $this->getAbsoluteDirOfFile( $relativePath );
 			if ( ! file_exists( $file ) ) {
@@ -665,17 +669,22 @@
 				'%s_action_%s',
 				strtolower( __hba_get_array_key( 'method', $this->__hba_current_route, 'GET' ) ),
 				strtolower( __hba_get_array_key( 'action', $this->__hba_current_route, '404' ) )
-			)
-			$this->doAction( $action );
-			$this->runFeedbackFunction(
-				'failure',
-				$this->__hba_current_route,
-				'Page Not Found',
-				array(
-					sprintf( 'Path "%s" is not a valid path', $this->runRequestFunction( 'getCurrentPath' ) ),
-				),
-				404
-			);
+			);;
+			if ( $this->hasAction( $action ) ) {
+				$this->doAction( $action );
+			}
+			else {
+				$this->runFeedbackFunction(
+					'failure',
+					$this->__hba_current_route,
+					'Page Not Found',
+					array(
+						sprintf( 'Path "%s" is not a valid path', $this->runRequestFunction( 'getCurrentPath' ) ),
+						sprintf( 'Action "%s" is not a valid action', $action ),
+					),
+					404
+				);
+			}
 			$this->runFeedbackFunction( 'outputFeedback' );
 		}
 

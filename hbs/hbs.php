@@ -664,7 +664,7 @@
 			$action = sprintf(
 				'%s_action_%s',
 				strtolower( __hba_get_array_key( 'method', $this->__hba_current_route, 'GET' ) ),
-				strtolower( __hba_get_array_key( 'action', $this->__hba_current_route, '404' ) ),
+				strtolower( __hba_get_array_key( 'action', $this->__hba_current_route, '404' ) )
 			)
 			$this->doAction( $action );
 			$this->runFeedbackFunction(

@@ -38,7 +38,7 @@ This secton sets configuration for authentication. While applications don't need
 | Setting | Variable Type | Description | Default |
 | ------- | ------------- | ----------- | ------- |
 | `enabled` | *boolean* | Enable or Disable the need for authentication. This mostly affects routing rules | `false` |
-| `controller` | *string* class name instance of *Hummingbird\HummingbirdAuthenticationControllerInterface* | The controller which is used for handling authentication. It is recommended that the default controller be extended and the new class replaced here | `\Hummingbird\HummingbirdDefaultAuthenticationController` |
+| `controller` | *string* class name instance of *Hummingbird\HummingbirdAuthenticationControllerInterface* | The controller which is used for handling authentication. *It is recommended that the default controller be extended and the new class replaced here* | `\Hummingbird\HummingbirdDefaultAuthenticationController` |
 | `allowHTTPBasicAuth` | *boolean* | Allow sending credentials via HTTP Basic Auth | `false` |
 | `allowHTTPHeaderAuth` | *boolean* | Allow sending credentials via HTTP Header | `false` |
 | `allowHTTPCookieAuth` | *boolean* | Allow capturing credentials from HTTP Cookie | `false` |

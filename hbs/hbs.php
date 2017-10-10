@@ -663,10 +663,7 @@
 		private function renderNothingHappened() {
 			$this->runFeedbackFunction(
 				'failure',
-				array(
-					'path' => $this->runRequestFunction( 'getCurrentPath' ),
-					'query' => __hba_get_array_key( 'query', $this->__hba_current_route, array() ),
-				),
+				$this->__hba_current_route,
 				'Page Not Found',
 				array(
 					sprintf( 'Path "%s" is not a valid path', $this->runRequestFunction( 'getCurrentPath' ) ),

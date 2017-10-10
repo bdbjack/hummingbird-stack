@@ -88,8 +88,14 @@ The following is an example application which has been renamed, has `Memcached` 
 			),
 		),
 	);
+```
 
-	/** Set the configuration in the App */
+Then set the configuration to the application as follows:
+
+```php
+<?php
 	$hba->setConfig( $appSettings );
 ```
+
+## Core Functionality
 

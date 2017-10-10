@@ -109,7 +109,7 @@
 			$this->addAction( 'initRouting', array( $this, 'prePopulateRoutes' ), -1 );
 			$this->addAction( 'initRouting', array( $this, 'setCurrentRouteInformation' ), 1000000 );
 			$this->addAction( 'initRouting', array( $this, 'setNewRelicInformation' ), 1000001 );
-			$this->addAction( 'render', array( $this, 'renderNothingHappened' ), 1000001 );
+			$this->addAction( 'render', array( $this, 'renderRoute' ), 1000001 );
 		}
 
 		/**
@@ -660,7 +660,13 @@
 			}
 		}
 
-		private function renderNothingHappened() {
+		private function renderRoute() {
+			$action = sprintf(
+				'%s_action_%s',
+				strtolower( __hba_get_array_key( 'method', $this->__hba_current_route, 'GET' ) ),
+				strtolower( __hba_get_array_key( 'action', $this->__hba_current_route, '404' ) ),
+			)
+			$this->doAction( $action );
 			$this->runFeedbackFunction(
 				'failure',
 				$this->__hba_current_route,

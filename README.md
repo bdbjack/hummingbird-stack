@@ -6,12 +6,12 @@
 
 This framework integrates the following libraries:
 
-* giggsey/libphonenumber-for-php
-* openwall/phpass
-* phpmailer/phpmailer
-* twilio/sdk
-* wisembly/elephant.io
-* Redbean for PHP
+* [giggsey/libphonenumber-for-php](https://github.com/giggsey/libphonenumber-for-php)
+* [openwall/phpass](http://www.openwall.com/phpass/)
+* [phpmailer/phpmailer](https://github.com/PHPMailer/PHPMailer)
+* [twilio/sdk](https://www.twilio.com/docs/libraries)
+* [wisembly/elephant.io](https://github.com/Wisembly/elephant.io)
+* [Redbean for PHP](https://redbeanphp.com/index.php)
 
 ## Using Hummingbird
 

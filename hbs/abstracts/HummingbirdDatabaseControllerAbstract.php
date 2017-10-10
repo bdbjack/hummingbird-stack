@@ -89,6 +89,7 @@
 
 		function db_dispense( $type, $param = null ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
+			$ot = $this->fixBeanType( $ot );
 			if ( ! is_empty( $param ) ) {
 				return \R::getRedBean()->dispense( $ot, $param );
 			}
@@ -97,6 +98,7 @@
 
 		function db_dispense_all( $type, $param = null ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
+			$ot = $this->fixBeanType( $ot );
 			if ( ! is_empty( $param ) ) {
 				return \R::getRedBean()->dispenseAll( $ot, $param );
 			}
@@ -105,21 +107,25 @@
 
 		function db_load( $type, $id = 0 ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
+			$ot = $this->fixBeanType( $ot );
 			return \R::getRedBean()->load( $ot, $id );
 		}
 
 		function db_load_all( $type, $ids = array() ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
+			$ot = $this->fixBeanType( $ot );
 			return \R::getRedBean()->loadAll( $ot, $ids );
 		}
 
 		function db_find( $type, $query = null, $vars = array() ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
+			$ot = $this->fixBeanType( $ot );
 			return \R::getRedBean()->find( $ot, array(), $query, $vars );
 		}
 
 		function db_find_one( $type, $query = null, $vars = array() ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
+			$ot = $this->fixBeanType( $ot );
 			$res = \R::prefixedFind( $type, $query, $vars );
 			if ( ! can_loop( $res ) ) {
 				return null;
@@ -130,11 +136,13 @@
 
 		function db_find_all( $type, $query = null, $vars = array() ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
+			$ot = $this->fixBeanType( $ot );
 			return \R::getRedBean()->find( $ot, array(), $query, $vars );
 		}
 
 		function db_count( $type, $query = null, $vars = array() ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
+			$ot = $this->fixBeanType( $ot );
 			if ( ! can_loop( $vars ) ) {
 				return \R::getRedBean()->count( $ot, $query );
 			}
@@ -143,6 +151,7 @@
 
 		function db_wipe( $type ) {
 			$ot = sprintf( '%s%s', $this->prefix, $type );
+			$ot = $this->fixBeanType( $ot );
 			return \R::getRedBean()->wipe( $ot );
 		}
 
@@ -170,7 +179,6 @@
 				) ) ) {
 					$name = sprintf( 'prefixed%s', ucfirst( $name ) );
 				}
-				// fix the names?
 				return forward_static_call_array( array( '\R', $name ), $arguments );
 			}
 			else {
@@ -181,5 +189,9 @@
 
 		static function __callStatic( string $name, array $arguments = array() ) {
 			return false;
+		}
+
+		private function fixBeanType( $input ) {
+			return strtolower( preg_replace( '/(?<!^)[A-Z]/', '_$0', $input ) );
 		}
 	}

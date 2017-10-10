@@ -668,7 +668,7 @@
 			$action = sprintf(
 				'%s_action_%s',
 				strtolower( __hba_get_array_key( 'method', $this->__hba_current_route, 'GET' ) ),
-				strtolower( __hba_get_array_key( 'action', $this->__hba_current_route, '404' ) )
+				str_replace( '-', '_', strtolower( strtolower( __hba_get_array_key( 'action', $this->__hba_current_route, '404' ) ) ) )
 			);;
 			if ( $this->hasAction( $action ) ) {
 				$this->doAction( $action );

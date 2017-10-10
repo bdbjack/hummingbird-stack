@@ -2,6 +2,17 @@
 
 *A lightweight, fast and easy-to-use framework*
 
+## Credits
+
+This framework integrates the following libraries:
+
+* giggsey/libphonenumber-for-php
+* openwall/phpass
+* phpmailer/phpmailer
+* twilio/sdk
+* wisembly/elephant.io
+* Redbean for PHP
+
 ## Using Hummingbird
 
 Hummingbird stack is best used as a git submodule. To add it to another Git repository simply run the following from within the project:

@@ -48,7 +48,7 @@ This secton sets configuration for authentication. While applications don't need
 
 ### `newrelic`
 
-NewRelic is a full-stack monitoring solution which shows high-resolution breakdowns of your application's performance.
+[NewRelic](https://newrelic.com/) is a full-stack monitoring solution which shows high-resolution breakdowns of your application's performance.
 While [NewRelic](https://newrelic.com/) isn't a requirement for the application to run, it is highly recommended both for development and live environments.
 Hummingbird further increases your integration with NewRelic by adding additional relevant information which will make it easier to identify and resolve issue and increase over-all performance.
 

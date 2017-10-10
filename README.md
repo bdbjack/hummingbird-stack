@@ -45,6 +45,8 @@ And once you have setup your app using the API's below, run the application as f
 
 Most of the application's default settings can be overwritten by simply using the `HummingbirdApp::setConfig` API, but certain settings such as adding databases should use their own specific API's.
 
+For more information on configuration settings, read the [configuration documentation](../blob/master/READMES/config.md)
+
 The following is an example application which has been renamed, has `Memcached` setup, uses PHP Sessions, and uses a local MySQL / MariaDB database.
 
 ```php

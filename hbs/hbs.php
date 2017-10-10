@@ -109,6 +109,7 @@
 			$this->addAction( 'initRouting', array( $this, 'prePopulateRoutes' ), -1 );
 			$this->addAction( 'initRouting', array( $this, 'setCurrentRouteInformation' ), 1000000 );
 			$this->addAction( 'initRouting', array( $this, 'setNewRelicInformation' ), 1000001 );
+			$this->addAction( 'render', array( $this, 'renderNothingHappened' ), 1000001 );
 		}
 
 		/**
@@ -229,7 +230,7 @@
 			}
 		}
 
-		public function run() {
+		public function run( $render = true ) {
 			$this->doAction( 'init' );
 			$this->doAction( 'initDatbases' );
 			$this->doAction( 'initCache' );
@@ -238,6 +239,9 @@
 			$this->doAction( 'initRouting' );
 			if ( extension_loaded( 'newrelic' ) && true == $this->getConfigSetting( 'newrelic', 'enabled' ) ) {
 				newrelic_end_of_transaction();
+			}
+			if ( true == $render ) {
+				$this->doAction( 'render' );
 			}
 		}
 
@@ -654,6 +658,22 @@
 					newrelic_start_transaction( $this->getConfigSetting( 'newrelic', 'apmName' ) );
 				}
 			}
+		}
+
+		private function renderNothingHappened() {
+			$this->runFeedbackFunction(
+				'failure',
+				array(
+					'path' => $this->runRequestFunction( 'getCurrentPath' ),
+					'query' => __hba_get_array_key( 'query', $this->__hba_current_route, array() ),
+				),
+				'Page Not Found',
+				array(
+					sprintf( 'Path "%s" is not a valid path', $this->runRequestFunction( 'getCurrentPath' ) ),
+				),
+				404
+			);
+			$this->runFeedbackFunction( 'outputFeedback' );
 		}
 
 		public static function _hba_strip_trailing_slash( $input ) {

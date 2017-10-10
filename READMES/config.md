@@ -48,7 +48,15 @@ This secton sets configuration for authentication. While applications don't need
 
 ### `newrelic`
 
+NewRelic is a full-stack monitoring solution which shows high-resolution breakdowns of your application's performance.
+While [NewRelic](https://newrelic.com/) isn't a requirement for the application to run, it is highly recommended both for development and live environments.
+Hummingbird further increases your integration with NewRelic by adding additional relevant information which will make it easier to identify and resolve issue and increase over-all performance.
 
+| Setting | Variable Type | Description | Default |
+| ------- | ------------- | ----------- | ------- |
+| `enabled` | *bool* | Enable or Disable NewRelic if the [NewRelic PHP Agent](https://docs.newrelic.com/docs/agents/php-agent/getting-started/introduction-new-relic-php#installation) is installed | `true` |
+| `apmName` | *string* | The name of the APM to be shown in NewRelic | `Hummingbird Application` |
+| `apmLicense` | *string* | The license key of the APM to be used. This should only be used in cases where the APM belongs to an account different than the one configured in the PHP Agent | `null` |
 
 ### `session`
 

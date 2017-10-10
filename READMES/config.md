@@ -33,7 +33,18 @@ This section holds general configuration settings for the application.
 
 ### `authentication`
 
+This secton sets configuration for authentication. While applications don't need to use authentication, and you don't need to use the application's authentication, it is highly recommended that you do
 
+| Setting | Variable Type | Description | Default |
+| ------- | ------------- | ----------- | ------- |
+| `enabled` | *boolean* | Enable or Disable the need for authentication. This mostly affects routing rules | `false` |
+| `controller` | *string* class name instance of *Hummingbird\HummingbirdAuthenticationControllerInterface* | The controller which is used for handling authentication. It is recommended that the default controller be extended and the new class replaced here | `\Hummingbird\HummingbirdDefaultAuthenticationController` |
+| `allowHTTPBasicAuth` | *boolean* | Allow sending credentials via HTTP Basic Auth | `false` |
+| `allowHTTPHeaderAuth` | *boolean* | Allow sending credentials via HTTP Header | `false` |
+| `allowHTTPCookieAuth` | *boolean* | Allow capturing credentials from HTTP Cookie | `false` |
+| `allowSessionAuth` | *boolean* | Allow capturing credentials from PHP Session | `false` |
+| `allowCLIAuth` | *boolean* | Allow Capturing Authentication from CLI arguments | `false` |
+| `authRedirectUri` | *string* | The URI which a regular web session is redirected to if not authenticated | `/login/` |
 
 ### `newrelic`
 

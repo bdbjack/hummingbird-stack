@@ -53,16 +53,18 @@
 		$similarity = array();
 		if ( __hba_can_loop( $__hba_countries ) ) {
 			foreach ( $__hba_countries as $iso => $data ) {
-				$prefix = __hba_get_array_key( 'prefix', $data );
-				if ( __hba_beginning_matches( $prefix, $phone ) && strlen( $prefix ) > 0 ) {
-					$score = 0;
-					if ( \Hummingbird\HummingbirdPhoneInterface::isValid( $phone, $iso ) ) {
-						$score = $score + 1;
+				if ( 'UK' !== $iso ) {
+					$prefix = __hba_get_array_key( 'prefix', $data );
+					if ( __hba_beginning_matches( $prefix, $phone ) && strlen( $prefix ) > 0 ) {
+						$score = 0;
+						if ( \Hummingbird\HummingbirdPhoneInterface::isValid( $phone, $iso ) ) {
+							$score = $score + 1;
+						}
+						if ( \Hummingbird\HummingbirdPhoneInterface::isMobile( $phone, $iso ) ) {
+							$score = $score + 1;
+						}
+						$similarity[ $iso ] = $score;
 					}
-					if ( \Hummingbird\HummingbirdPhoneInterface::isMobile( $phone, $iso ) ) {
-						$score = $score + 1;
-					}
-					$similarity[ $iso ] = $score;
 				}
 			}
 		}

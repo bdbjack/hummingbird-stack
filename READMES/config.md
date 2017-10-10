@@ -5,7 +5,10 @@
 ## Configuration
 
 Application configuration is broken up into "sections" and "settings". The sections are primarily for segmentation, while the settings are used in various parts of the application, either in the default controllers or in custom controllers which are used to extend the application.
-It is recommended that you extend and modify the application by changing the values for various controller settings. 
+It is recommended that you extend and modify the application by changing the values for various controller settings.
+
+**NOTE**
+Because Hummingbird is namespaced, you will need to use `\` before any non-namespaced classes. For example `stdClass` needs to be called as `\stdClass`.
 
 ## Per Section Configuration
 

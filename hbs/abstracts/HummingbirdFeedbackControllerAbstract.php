@@ -120,6 +120,17 @@
 			}
 		}
 
+		function cli_echo( $input ) {
+			$args = func_get_args();
+			if ( ! is_object( $input ) && ! is_array( $input ) ) {
+				echo call_user_func_array( 'sprintf', $args );
+			}
+			else {
+				echo print_r( $input, true );
+			}
+			echo "\r\n";
+		}
+
 		protected function getHtmlFeedback() {
 			$output = '';
 			$output .= '<pre>' . "\r\n";

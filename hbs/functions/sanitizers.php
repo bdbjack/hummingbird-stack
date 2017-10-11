@@ -62,7 +62,7 @@
 		if ( '/' !== substr( $input, 0, 1 ) ) {
 			$input = '/' . $input;
 		}
-		if ( '/' !== substr( $input, -1 ) ) {
+		if ( '/' !== substr( $input, -1 ) || '\/' == substr( $input, -2 )  ) {
 			$input .= '/';
 		}
 		return $input;

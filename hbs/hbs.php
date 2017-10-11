@@ -618,13 +618,15 @@
 			}
 			else {
 				foreach ( $methodRoutes as $pattern => $info ) {
-					$pat = __hba_sanitize_regex( $pattern );
-					if ( intval( preg_match( $pat, $path, $matches ) ) > 0 ) {
-						$r = __hba_get_array_key( $pattern, $methodRoutes, array() );
-						$fp = $pattern;
-						array_shift( $matches );
-						array_replace_recursive( $passthrough, $matches );
-						break;
+					if ( '/' !== $pattern ) {
+						$pat = __hba_sanitize_regex( $pattern );
+						if ( intval( preg_match( $pat, $path, $matches ) ) > 0 ) {
+							$r = __hba_get_array_key( $pattern, $methodRoutes, array() );
+							$fp = $pattern;
+							array_shift( $matches );
+							array_replace_recursive( $passthrough, $matches );
+							break;
+						}
 					}
 				}
 			}

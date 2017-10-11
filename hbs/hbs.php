@@ -342,7 +342,7 @@
 		public function runAuthenticationFunction( string $function ) {
 			$args = func_get_args();
 			array_shift( $args );
-			if ( false == $this->getConfigSetting( 'authentication', 'enabled' ) ) {
+			if ( false == $this->getConfigSetting( 'authentication', 'enabled' ) || ! __hba_is_instance_of( $this->__hba_authentication_controller, 'Hummingbird\HummingbirdAuthenticationControllerInterface' ) ) {
 				return false;
 			}
 			return call_user_func_array( array( $this->__hba_authentication_controller, $function ), $args );
@@ -563,13 +563,6 @@
 		private function activateAuthenticationController() {
 			if (
 				true == $this->getConfigSetting( 'authentication', 'enabled' )
-				&& (
-					true == $this->getConfigSetting( 'authentication', 'allowCLIAuth' )
-					|| true == $this->getConfigSetting( 'authentication', 'allowHTTPBasicAuth' )
-					|| true == $this->getConfigSetting( 'authentication', 'allowHTTPHeaderAuth' )
-					|| true == $this->getConfigSetting( 'authentication', 'allowHTTPCookieAuth' )
-					|| true == $this->getConfigSetting( 'authentication', 'allowSessionAuth' )
-				)
 			) {
 				$ac = $this->getConfigSetting( 'authentication', 'controller' );
 				if ( ! __hba_is_instance_of( $ac, 'Hummingbird\HummingbirdAuthenticationControllerInterface' ) ) {
@@ -671,19 +664,39 @@
 				'%s_action_%s',
 				strtolower( __hba_get_array_key( 'method', $this->__hba_current_route, 'GET' ) ),
 				str_replace( '-', '_', strtolower( strtolower( __hba_get_array_key( 'action', $this->__hba_current_route, '404' ) ) ) )
-			);;
+			);
+			/**
+			 * Now let's deal with authentication!
+			 */
+			if ( true == get_array_key( 'authRequired', $this->__hba_current_route, false ) ) {
+				if ( false == $this->runAuthenticationFunction( 'isLoggedIn' ) ) {
+					$this->runFeedbackFunction(
+						'redirect',
+						$this->runRequestFunction( 'getURLFromPath', $this->getConfigSetting( 'authentication', 'authRedirectUri' ) )
+					);
+				}
+				else if ( true == $this->runAuthenticationFunction( 'isLoggedIn' ) && true == get_array_key( 'redirectAuthenticated', $this->__hba_current_route ) ) {
+					$this->runFeedbackFunction(
+						'redirect',
+						$this->runRequestFunction( 'getURLFromPath', '/' )
+					);
+				}
+			}
 			if ( $this->hasAction( $action ) ) {
 				$this->doAction( $action );
 			}
 			else {
+				$ea = array(
+					sprintf( 'Path "%s" is not a valid path', $this->runRequestFunction( 'getCurrentPath' ) ),
+				);
+				if ( true == $this->getConfigSetting( 'application', 'debug' ) ) {
+					array_push( $ea, sprintf( 'Action "%s" is not a valid action', $action ) );
+				}
 				$this->runFeedbackFunction(
 					'failure',
 					$this->__hba_current_route,
 					'Page Not Found',
-					array(
-						sprintf( 'Path "%s" is not a valid path', $this->runRequestFunction( 'getCurrentPath' ) ),
-						sprintf( 'Action "%s" is not a valid action', $action ),
-					),
+					$ea,
 					404
 				);
 			}

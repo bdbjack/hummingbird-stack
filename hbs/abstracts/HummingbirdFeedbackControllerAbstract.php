@@ -84,8 +84,8 @@
 			return true;
 		}
 
-		function redirect( string $location, int $delay = 0, int $type = 301 ) {
-			if ( headers_sent() ) {
+		function redirect( string $location, int $delay = 0, int $type = 301, $follow = true ) {
+			if ( headers_sent() || false == $follow ) {
 				switch( $type ) {
 					case 301:
 						$msg = 'Moved Permanently';

@@ -665,9 +665,6 @@
 				strtolower( __hba_get_array_key( 'method', $this->__hba_current_route, 'GET' ) ),
 				str_replace( '-', '_', strtolower( strtolower( __hba_get_array_key( 'action', $this->__hba_current_route, '404' ) ) ) )
 			);
-			/**
-			 * Now let's deal with authentication!
-			 */
 			if ( true == get_array_key( 'authRequired', $this->__hba_current_route, false ) ) {
 				if ( false == $this->runAuthenticationFunction( 'isLoggedIn' ) ) {
 					$this->runFeedbackFunction(

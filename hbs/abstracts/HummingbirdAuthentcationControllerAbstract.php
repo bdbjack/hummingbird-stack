@@ -147,7 +147,7 @@
 				return false;
 			}
 			$aso = new \stdClass();
-			$aso->id = md5( time() * rand( 1, 100 ) );
+			$aso->id = md5( sprintf( '%s_%s_%s', ( time() * rand( 1, 100 ) ), $this->hba->runRequestFunction( 'getCurrentUserIP' ), $this->hba->runRequestFunction( 'getRequestHeaders', 'User-Agent' ) ) );
 			$aso->userId = $userId;
 			$aso->userIP = $this->hba->runRequestFunction( 'getCurrentUserIP' );
 			$aso->userAgent = $this->hba->runRequestFunction( 'getRequestHeaders', 'User-Agent' );

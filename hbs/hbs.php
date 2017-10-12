@@ -393,6 +393,10 @@
 			return false;
 		}
 
+		public function getCurrentRouteInformation() {
+			return $this->__hba_current_route;
+		}
+
 		private function doAction( $key ) {
 			if (
 				array_key_exists( $key, $this->_actions )

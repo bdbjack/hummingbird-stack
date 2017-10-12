@@ -617,7 +617,7 @@
 							$r = __hba_get_array_key( $pattern, $methodRoutes, array() );
 							$fp = $pattern;
 							array_shift( $matches );
-							array_replace_recursive( $passthrough, $matches );
+							$passthrough = array_merge( $passthrough, $matches );
 							break;
 						}
 					}

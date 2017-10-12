@@ -80,7 +80,7 @@
 		}
 
 		function debug( $data = null ) {
-			$this->fbo = $this->generateFeedbackObject( 'DEBUG', $data );
+			$this->fbo = $this->generateFeedbackObject( 'DEBUG', $data, 'Debug', array(), 200 );
 			return true;
 		}
 

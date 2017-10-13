@@ -60,7 +60,13 @@ Hummingbird further increases your integration with NewRelic by adding additiona
 
 ### `session`
 
+Not all applications require use of a session. WordPress for example, recommends *AGAINST* using a Session, instead depending on various cookies for authentication.
+One of the reasons for this is that PHP's default Session Handler reads and writes session files from the server's local hard drive, which is slow. Hummingbird has it's own Session handler which uses the fastest caching controller available to handle Session requests.
 
+| Setting | Variable Type | Description | Default |
+| ------- | ------------- | ----------- | ------- |
+| `enabled` | *bool* | Enable or Disable the PHP Session | `false` |
+| `controller` | *string* class name of instance of *Hummingbird\HummingbirdSessionControllerInterface* | A controller which intelligently handles reading and writing from the session | `\Hummingbird\HummingbirdDefaultSessionController` |
 
 ### `databases`
 

@@ -70,7 +70,7 @@ One of the reasons for this is that PHP's default Session Handler reads and writ
 
 ### `databases`
 
-Databases are the most ubiquitous method to store and retrieve information for dynamic web applications. Hummingbird uses's [RedBean for PHP](https://redbeanphp.com/index.php) in order to simplify interaction with several types of databases.
+Databases are the most ubiquitous method to store and retrieve information for dynamic web applications. Hummingbird uses [RedBean for PHP](https://redbeanphp.com/index.php) in order to simplify interaction with several types of databases.
 The database types which are currently supported are:
 
 * MySQL / MariaDB
@@ -121,11 +121,65 @@ The array of servers is an associative array with the key being an identifier fo
 
 ### `memcache`
 
+Memcache is an older and slightly more limited memory-based object caching system. Essentially, it is a non-relational which uses a server's ( or multple servers ) RAM to store and retrieve information at a very high speed.
+For more information on the difference between `Memcache` and `Memcached` see [this answer from StackOverflow](https://stackoverflow.com/questions/1825256/memcache-vs-memcached)
 
+| Setting | Variable Type | Description | Default |
+| ------- | ------------- | ----------- | ------- |
+| `enabled` | *bool* | Enable or Disable memcache usage | `false` |
+| `servers` | *bool* | An array of servers which can be accessed by the cache controller | `array()` |
+
+The array of servers is an indexed (not associative) array of arrays with server connection information. The format of the server connection information array is as follows:
+
+| Key | Description | Default |
+| --- | ----------- | ------- |
+| `host` | The hostname or IP address of the server being connected to | `localhost` |
+| `port` | The port the `memcached` daemon is accepting connections on | `11211` |
+| `priority` | The liklihood that the server will be selected for operations. The higher the priority, the more likely the server is to be chosen | `10` |
+
+#### Example Server Array
+
+```php
+<?php
+	$servers = array(
+		array(
+			'host' => 'localhost',
+			'port' => 11211,
+			'priority' => 10,
+		),
+	);
+```
 
 ### `memcached`
 
+Memcached is an newer and slightly less limited memory-based object caching system. Essentially, it is a non-relational which uses a server's ( or multple servers ) RAM to store and retrieve information at a very high speed.
+For more information on the difference between `Memcache` and `Memcached` see [this answer from StackOverflow](https://stackoverflow.com/questions/1825256/memcache-vs-memcached)
 
+| Setting | Variable Type | Description | Default |
+| ------- | ------------- | ----------- | ------- |
+| `enabled` | *bool* | Enable or Disable memcache usage | `false` |
+| `servers` | *bool* | An array of servers which can be accessed by the cache controller | `array()` |
+
+The array of servers is an indexed (not associative) array of arrays with server connection information. The format of the server connection information array is as follows:
+
+| Key | Description | Default |
+| --- | ----------- | ------- |
+| `host` | The hostname or IP address of the server being connected to | `localhost` |
+| `port` | The port the `memcached` daemon is accepting connections on | `11211` |
+| `priority` | The liklihood that the server will be selected for operations. The higher the priority, the more likely the server is to be chosen | `10` |
+
+#### Example Server Array
+
+```php
+<?php
+	$servers = array(
+		array(
+			'host' => 'localhost',
+			'port' => 11211,
+			'priority' => 10,
+		),
+	);
+```
 
 ### `redis`
 

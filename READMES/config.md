@@ -85,7 +85,7 @@ The database types which are currently supported are:
 The array of servers is an associative array with the key being an identifier for the specific database, and the value being an array of configuration information.
 
 **NOTE** If `true == $hba->getConfigSetting( 'databases', 'enabled' )`, you must have a database with the key of `default`.
-**NOTE** It is possible to add / modify databases programmatically using `HummingbirdApp::addDatabase` both before the configuration is loaded, and after. [Click Here](../master/hbs/hbs.php#L191) to see the usage for `HummingbirdApp::addDatabase`.
+**NOTE** It is possible to add / modify databases programmatically using `HummingbirdApp::addDatabase` both before the configuration is loaded, and after. [Click Here](../hbs/hbs.php#L191) to see the usage for `HummingbirdApp::addDatabase`.
 
 ### `memcache`
 

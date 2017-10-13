@@ -70,7 +70,22 @@ One of the reasons for this is that PHP's default Session Handler reads and writ
 
 ### `databases`
 
+Databases are the most ubiquitous method to store and retrieve information for dynamic web applications. Hummingbird uses's [RedBean for PHP](https://redbeanphp.com/index.php) in order to simplify interaction with several types of databases.
+The database types which are currently supported are:
 
+* MySQL / MariaDB
+* PosgreSQL (note: this requires that you have PHP's pgsql extension installed and configured)
+* SQLite
+
+| Setting | Variable Type | Description | Default |
+| ------- | ------------- | ----------- | ------- |
+| `enabled` | *bool* | Enable or Disable database usage | `false` |
+| `servers` | *bool* | An array of databases which can be accessed by the database controller | *see below* |
+
+The array of servers is an associative array with the key being an identifier for the specific database, and the value being an array of configuration information.
+
+**NOTE** If `true == $hba->getConfigSetting( 'databases', 'enabled' )`, you must have a database with the key of `default`.
+**NOTE** It is possible to add / modify databases programmatically using `HummingbirdApp::addDatabase` both before the configuration is loaded, and after. [Click Here](../master/hbs/hbs.php#L191) to see the usage for `HummingbirdApp::addDatabase`.
 
 ### `memcache`
 

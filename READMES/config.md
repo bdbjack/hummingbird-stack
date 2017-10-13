@@ -205,7 +205,7 @@ The array of servers is an indexed (not associative) array of arrays with server
 | Key | Description | Default |
 | --- | ----------- | ------- |
 | `host` | The hostname or IP address of the server being connected to | `localhost` |
-| `port` | The port the `memcached` daemon is accepting connections on | `11211` |
+| `port` | The port the `redis` daemon is accepting connections on | `11211` |
 | `priority` | The liklihood that the server will be selected for operations. The higher the priority, the more likely the server is to be chosen | `10` |
 
 #### Example Server Array

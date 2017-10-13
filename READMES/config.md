@@ -124,6 +124,8 @@ The array of servers is an associative array with the key being an identifier fo
 Memcache is an older and slightly more limited memory-based object caching system. Essentially, it is a non-relational which uses a server's ( or multple servers ) RAM to store and retrieve information at a very high speed.
 For more information on the difference between `Memcache` and `Memcached` see [this answer from StackOverflow](https://stackoverflow.com/questions/1825256/memcache-vs-memcached)
 
+**NOTE:** Usage of `memcache` requires that PHP's memcache extension is enabled.
+
 | Setting | Variable Type | Description | Default |
 | ------- | ------------- | ----------- | ------- |
 | `enabled` | *bool* | Enable or Disable memcache usage | `false` |
@@ -155,6 +157,8 @@ The array of servers is an indexed (not associative) array of arrays with server
 Memcached is an newer and slightly less limited memory-based object caching system. Essentially, it is a non-relational which uses a server's ( or multple servers ) RAM to store and retrieve information at a very high speed.
 For more information on the difference between `Memcache` and `Memcached` see [this answer from StackOverflow](https://stackoverflow.com/questions/1825256/memcache-vs-memcached)
 
+**NOTE:** Usage of `memcached` requires that PHP's memcached extension is enabled.
+
 | Setting | Variable Type | Description | Default |
 | ------- | ------------- | ----------- | ------- |
 | `enabled` | *bool* | Enable or Disable memcache usage | `false` |
@@ -182,6 +186,40 @@ The array of servers is an indexed (not associative) array of arrays with server
 ```
 
 ### `redis`
+
+Hummingbird also includes the ability to interact with Redis, another memory-based object caching system. The main advantages of using Redis over Memcached is that Redis is slightly faster and creates less overhead than Memcached.
+For those reasons it is highly recommend to use Redis instead of `Memcache` or `Memcached` where possible.
+For a more detailed explanation of the differences between Memcached and Redis, see this [answer from StackOverflow](https://stackoverflow.com/questions/10558465/memcached-vs-redis)
+
+**NOTE:** Usage of `redis` requires that PHP's redis extension is enabled.
+
+Hummingbird's implementation of Redis allows for Redis server clustering out of the box. The syntax for managing servers is the same as long as you are using the built-in cache controller.
+
+| Setting | Variable Type | Description | Default |
+| ------- | ------------- | ----------- | ------- |
+| `enabled` | *bool* | Enable or Disable memcache usage | `false` |
+| `servers` | *bool* | An array of servers which can be accessed by the cache controller | `array()` |
+
+The array of servers is an indexed (not associative) array of arrays with server connection information. The format of the server connection information array is as follows:
+
+| Key | Description | Default |
+| --- | ----------- | ------- |
+| `host` | The hostname or IP address of the server being connected to | `localhost` |
+| `port` | The port the `memcached` daemon is accepting connections on | `11211` |
+| `priority` | The liklihood that the server will be selected for operations. The higher the priority, the more likely the server is to be chosen | `10` |
+
+#### Example Server Array
+
+```php
+<?php
+	$servers = array(
+		array(
+			'host' => 'localhost',
+			'port' => 11211,
+			'priority' => 10,
+		),
+	);
+```
 
 
 

@@ -87,6 +87,37 @@ The array of servers is an associative array with the key being an identifier fo
 **NOTE** If `true == $hba->getConfigSetting( 'databases', 'enabled' )`, you must have a database with the key of `default`.
 **NOTE** It is possible to add / modify databases programmatically using `HummingbirdApp::addDatabase` both before the configuration is loaded, and after. [Click Here](../hbs/hbs.php#L191) to see the usage for `HummingbirdApp::addDatabase`.
 
+#### Database Configuration Variables
+
+| Key | Description |
+| --- | ----------- |
+| `type` | The type of database being connected to. Options are: `sqlite`, `mysql`, `pgsql` |
+| `host` | The hostname or IP address of the server being connected to. (Leave blank for `sqlite`) |
+| `port` | The port the database server responds on. (Leave blank for `sqlite`) |
+| `name` | The name of the database or database file to be used |
+| `user` | The username used to authenticate with the database server |
+| `pass` | The password used to authenticate with the database server |
+| `prefix` | A prefix preventing accidental overwriting of tables on a shared database |
+| `frozen` | See [Redbean's Guide on Frozen and Fluid Modes](https://redbeanphp.com/index.php?p=/fluid_and_frozen) for more information |
+
+#### Example Database Configuration
+
+```php
+	$databaseServers = array(
+		'default' => array(
+			'type' => 'mysql',
+			'host' => 'localhost',
+			'port' => 3306,
+			'name' => '*************',
+			'user' => '*************',
+			'pass' => '*************',
+			'prefix' => 'pnm_',
+			'frozen' => false,
+			'readonly' => false,
+		),
+	);
+```
+
 ### `memcache`
 
 

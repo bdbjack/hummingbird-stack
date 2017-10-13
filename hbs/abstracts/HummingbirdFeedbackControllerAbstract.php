@@ -163,7 +163,13 @@
 		protected function parseHttpHeaders() {
 			$_server = $_SERVER;
 			if ( function_exists( 'getallheaders' ) ) {
-				return getallheaders();
+				$headers = getallheaders();
+				if ( __hba_can_loop( $headers ) ) {
+					foreach ( $headers as $key => $value ) {
+						$headers[ ucwords( $key ) ] = $value;
+					}
+				}
+				return $headers;
 			}
 			$return = array();
 			foreach ( $_server as $key => $value ) {
@@ -172,6 +178,7 @@
 					$key = str_replace( '_', ' ', $key );
 					$key = ucwords( strtolower( $key ) );
 					$key = str_replace( ' ', '-', $key );
+					$key = ucwords( $key );
 					$return[ $key ] = $value;
 				}
 			}

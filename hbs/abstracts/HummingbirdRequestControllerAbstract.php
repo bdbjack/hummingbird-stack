@@ -380,7 +380,13 @@
 
 		private function parse_http_headers() {
 			if ( function_exists( 'getallheaders' ) ) {
-				return getallheaders();
+				$headers = getallheaders();
+				if ( __hba_can_loop( $headers ) ) {
+					foreach ( $headers as $key => $value ) {
+						$headers[ ucwords( $key ) ] = $value;
+					}
+				}
+				return $headers;
 			}
 			$return = array();
 			foreach ( $this->__server as $key => $value ) {

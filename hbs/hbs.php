@@ -397,6 +397,10 @@
 			return $this->__hba_current_route;
 		}
 
+		public function getCurrentConfig() {
+			return $this->_config;
+		}
+
 		private function doAction( $key ) {
 			if (
 				array_key_exists( $key, $this->_actions )

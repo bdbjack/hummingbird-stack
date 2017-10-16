@@ -84,6 +84,42 @@ $hba->addRoute( 'GET', '/', 'dashboard', true, false, 'System Dashboard', true )
 
 ### Adding Actions
 
+An action is a hookable event which calls functions and methods which are associated with it. The concept is based on WordPress's hookable events API (known as actions and filters). [Read this for more information about WordPress's Action hooks](https://developer.wordpress.org/plugins/hooks/actions/).
+
+Unlike WordPress, Hummingbird does not give you the ability to create your own action hooks outside of Hummingbird, however you can hook any function or class method you'd like into the existing event hooks.
+
+**NOTE:** All action hooks are loaded by the `HummingbirdApp::run()` function. Actions will not occur before so that all pre-requisites can be loaded correctly.
+
+#### Current Action Hooks
+
+| Order | Hook | Description |
+| ----- | ---- | ----------- |
+| 1 | `init` | Loads all of the core controllers required for Hummingbird to run |
+| 2 | `initDatabases` | Loads and begins configuration of all of the database controllers |
+| 3 | `initCache` | Loads and configures the Hummingbird Caching Mechanism |
+| 4 | `initSession` | Sets a PHP session handler if sessions are enabled |
+| 5 | `initAuthentication` | Loads the authentication controller and tries to create or load an authentication session where possible |
+| 6 | `initRouting` | Load routes and check which route matches the current path |
+| 7 | `render` | Using the feedback controller, render content. **NOTE:** if `HummingbirdApp::run()` has `false` passed as the first argument, this action will not occur.
+
+#### Hooking to an action
+
+The `HummingbirdApp::addAction()` is used to call an action from a hook. The function accepts 4 arguments:
+
+| Argument | Type | Description |
+| -------- | ---- | ----------- |
+| `key` | *string* | The hook which you want to hook the function into |
+| `function` | [*callable*](http://php.net/manual/en/language.types.callable.php) | The function or method to be called |
+| `priority` | *interger* | The priority defines the order the action is called in relation to other actions on the same hook. Actions are ordered in ascending order by priority |
+| `passApp` | *boolean* | Whether the first argument passed to the function or method should be the instance of  `HummingbirdApp` which called the action |
+
+#### Example Usage
+
+```php
+$hba->addAction( 'get_dashboard', 'render_system_dashboard' );
+$hba->addAction( 'initDatabases', array( '\SomeClass', 'someMethod' );
+```
+
 ### Interacting with a request
 
 ### Interacting with databases

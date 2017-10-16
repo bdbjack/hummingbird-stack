@@ -102,7 +102,7 @@
 			$this->setConfig( $defaultConfig );
 			$this->addAction( 'init', array( $this, 'activateNewrelicTransaction' ), -1  );
 			$this->addAction( 'init', array( $this, 'activateControllers' ) );
-			$this->addAction( 'initDatbases', array( $this, 'activateDatabaseControllers' ) );
+			$this->addAction( 'initDatabases', array( $this, 'activateDatabaseControllers' ) );
 			$this->addAction( 'initCache', array( $this, 'activateCacheController' ) );
 			$this->addAction( 'initSession', array( $this, 'activateSessionController' ) );
 			$this->addAction( 'initAuthentication', array( $this, 'activateAuthenticationController' ) );
@@ -192,7 +192,7 @@
 			if ( false == $this->getConfigSetting( 'databases', 'enabled' ) ) {
 				return false;
 			}
-			if ( in_array( 'initDatbases', $this->__hba_loaded_actions ) ) {
+			if ( in_array( 'initDatabases', $this->__hba_loaded_actions ) ) {
 				$dbc = $this->getConfigSetting( 'application', 'databaseController' );
 				if ( ! __hba_is_instance_of( $dbc, 'Hummingbird\HummingbirdDatabaseControllerInterface' ) ) {
 					throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdDatabaseControllerInterface', $dbc ), 1 );
@@ -232,7 +232,7 @@
 
 		public function run( $render = true ) {
 			$this->doAction( 'init' );
-			$this->doAction( 'initDatbases' );
+			$this->doAction( 'initDatabases' );
 			$this->doAction( 'initCache' );
 			$this->doAction( 'initSession' );
 			$this->doAction( 'initAuthentication' );

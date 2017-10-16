@@ -137,6 +137,10 @@
 			return sprintf( '%s://%s/%s', $scheme, $host, \Hummingbird\HummingbirdApp::_hba_strip_leading_slash( $uri ) );
 		}
 
+		function getCurrentHost() {
+			return $this->_get_hostname();
+		}
+
 		function getURIFromPath( string $path = '/', array $query = array() ) {
 			if ( true == __hba_is_cli() ) {
 				return $this->getCLIURIFromPath( $path, $query );

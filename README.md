@@ -122,6 +122,31 @@ $hba->addAction( 'initDatabases', array( '\SomeClass', 'someMethod' ) );
 
 ### Interacting with a request
 
+Hummingbird attempts to standardize interacting with requests by wrapping all of the functionality into a single controller, which is accessible using the `HummingbirdApp::runRequestFunction()` method.
+
+The `HummingbirdApp::runRequestFunction()` requires that the first argument passed must be the name of the `HummingbirdRequestControllerInterface` object method being called. Any arguements which should be passed to the method should be passed normally.
+
+A full list of methods can be found in the [Request Controller Documentation](../master/READMES/requestController.md)
+
+#### Example Usage
+
+**Direct Method**
+```php
+$controller = new \Hummingbird\HummingbirdDefaultRequestController( $hba );
+$absURL = $controller->getURIFromPath( '/this/is/a/path', array(
+    'var1' => 'foo',
+    'var2' => 'bar',
+) );
+```
+
+**Masked Method**
+```php
+$absURL = $hba->runRequestFunction( 'getURIFromPath', '/this/is/a/path', array(
+    'var1' => 'foo',
+    'var2' => 'bar',
+) );
+```
+
 ### Interacting with databases
 
 ### Interacting with the cache

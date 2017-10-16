@@ -223,4 +223,18 @@ The array of servers is an indexed (not associative) array of arrays with server
 
 ### `smtp`
 
+Hummingbird implements [phpmailer/phpmailer](https://github.com/PHPMailer/PHPMailer) both for security purposes and to allow for a more streamlined email sending experience.
 
+**NOTE:** As a general practice, it is highly recommended against sending emails directly from the same host that you use as a webserver, as the IP address of the server can be revealed and make the server vulnerable to attack.
+
+| Setting | Variable Type | Description | Default |
+| ------- | ------------- | ----------- | ------- |
+| `enabled` | *bool* | Enable or Disable smtp usage | `false` |
+| `controller` | *string* class name instance of *Hummingbird\HummingbirdEmailControllerInterface* | The controller used for sending emails | `\Hummingbird\HummingbirdDefaultEmailController` |
+| `host` | *string* | The SMTP host which will handle the email sending | `localhost` |
+| `port` | *string* | The port that the SMTP service is listening to on the SMTP host | `25` |
+| `auth` | *bool* | Whether authentication information needs to be sent to the SMTP server | `false` |
+| `user` | *string*/*null* | The username which will be sent for authentication to the SMTP server if authentication is required | `null` |
+| `pass` | *string*/*null* | The password which will be sent for authentication to the SMTP server if authentication is required | `null` |
+| `encrypt` | *string* | The type of encryption to use when connecting to the host. Options are `ssl` and `tls`. For more information see the [phpmailer API documentation](http://phpmailer.github.io/PHPMailer/classes/PHPMailer.PHPMailer.PHPMailer.html#property_SMTPSecure)| `null` |
+| `senders` | *array* | An indexed array of allowed sending email addresses. By default, and empty array will allow any sending email address to be used. Configuring this setting prevents the script from being hijacked.  | `array()` |

@@ -175,6 +175,9 @@
 		}
 
 		public static function in_cidr( $ip = null, $range = null ) {
+			if ( false == self::is_valid_cidr( $range ) ) {
+				return false;
+			}
 			list ( $subnet, $bits ) = explode( '/', $range );
 			$ip = ip2long( $ip );
 			$subnet = ip2long( $subnet );

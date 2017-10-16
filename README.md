@@ -60,3 +60,46 @@ For more information on configuration settings, read the [configuration document
 
 ## Core Functionality
 
+### Adding Routes
+
+A route is a combination of an HTTP Request method and a path which triggers an associated action. Routes can be either statically defined (i.e. `/this/is/a/path/`) or can use regular expressions to dynamically capture information from the path and pass it through to the route controller (i.e. `/this/([^/].*/a/([^/].*/`).
+
+Adding routes are accomplished using the `HummingbirdApp::addRoute` function. The function accepts 7 arguments:
+
+| Argument | Type | Description |
+| -------- | ---- | ----------- |
+| `method` | *string* | The method of the request. All HTTP methods are supported, as well as `CLI` which is used for command line requests. |
+| `pattern`  | *string* | The regular expression or statically defined path for which the route will be activated |
+| `action`  | *string* | The name of the action to be called. **NOTE:** Hummingbird slightly modifies the action to match *both* the method and the action when running `HummingbirdApp::doAction` |
+| `authRequired` | *boolean* | Whether or not a user must be logged in for the action to run. If the user isn't logged in they will be redirected to a login page where possible. |
+| `redirectAuthenticated` | *boolean* | Redirect users who are logged in to the base URI of the system. This is useful for login and registration pages where logged in users shoudn't be able to interact with the forms.
+| `title` | *string* | The title of the page / endpoint.
+| `overwrite` | *boolean* | If the pattern already exists in routes buffer, allow it to be overwritten.
+
+#### Example of adding a Route
+
+```php
+$hba->addRoute( 'GET', '/', 'dashboard', true, false, 'System Dashboard', true );
+```
+
+### Adding Actions
+
+### Interacting with a request
+
+### Interacting with databases
+
+### Interacting with the cache
+
+### Interacting with external HTTP services
+
+### Interacting with SMTP
+
+### Handling Authentication
+
+### Generating Feedback
+
+### Errors and Debugging
+
+### The Phone Number Utility
+
+### The IP Address Utility

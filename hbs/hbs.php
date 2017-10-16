@@ -741,6 +741,12 @@
 			else if ( ! self::patternIsExactMatch( $a ) && self::patternIsExactMatch( $b ) ) {
 				return -1;
 			}
+			else if ( '^/(.*)$' == $a ) {
+				return 1;
+			}
+			else if ( '^/(.*)$' == $b ) {
+				return -1;
+			}
 			else {
 				return ( strlen( $a ) < strlen( $b ) ) ? -1 : 1;
 			}

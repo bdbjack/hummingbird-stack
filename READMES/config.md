@@ -238,3 +238,52 @@ Hummingbird implements [phpmailer/phpmailer](https://github.com/PHPMailer/PHPMai
 | `pass` | *string*/*null* | The password which will be sent for authentication to the SMTP server if authentication is required | `null` |
 | `encrypt` | *string* | The type of encryption to use when connecting to the host. Options are `ssl` and `tls`. For more information see the [phpmailer API documentation](http://phpmailer.github.io/PHPMailer/classes/PHPMailer.PHPMailer.PHPMailer.html#property_SMTPSecure)| `null` |
 | `senders` | *array* | An indexed array of allowed sending email addresses. By default, and empty array will allow any sending email address to be used. Configuring this setting prevents the script from being hijacked.  | `array()` |
+
+## Example Configuration
+
+The following is an example application which has been renamed, has `Memcached` setup, uses PHP Sessions, and uses a local MySQL / MariaDB database.
+
+```php
+<?php
+	$appSettings = array(
+		'application' => array(
+			'name' => 'Example Application',
+			'debug' => false,
+		),
+		'newrelic' => array(
+			'enabled' => true,
+			'apmName' => 'Example Application',
+		),
+		'session' => array(
+			'enabled' => true,
+		),
+		'databases' => array(
+			'enabled' => true,
+			'servers' => array(
+				'default' => array(
+					'type' => 'mysql',
+					'host' => 'localhost',
+					'port' => 3306,
+					'name' => 'example',
+					'user' => 'root',
+					'pass' => '',
+					'prefix' => 'exp_',
+					'frozen' => false,
+					'readonly' => false,
+				),
+			),
+		),
+		'memcached' => array(
+			'enabled' => true,
+			'servers' => array(
+				array(
+					'host' => 'localhost',
+					'port' => 11211,
+					'priority' => 10,
+				),
+			),
+		),
+	);
+
+	$hba->setConfig( $appSettings );
+```

@@ -58,57 +58,5 @@ Most of the application's default settings can be overwritten by simply using th
 
 For more information on configuration settings, read the [configuration documentation](../master/READMES/config.md)
 
-The following is an example application which has been renamed, has `Memcached` setup, uses PHP Sessions, and uses a local MySQL / MariaDB database.
-
-```php
-<?php
-	$appSettings = array(
-		'application' => array(
-			'name' => 'Example Application',
-			'debug' => false,
-		),
-		'newrelic' => array(
-			'enabled' => true,
-			'apmName' => 'Example Application',
-		),
-		'session' => array(
-			'enabled' => true,
-		),
-		'databases' => array(
-			'enabled' => true,
-			'servers' => array(
-				'default' => array(
-					'type' => 'mysql',
-					'host' => 'localhost',
-					'port' => 3306,
-					'name' => 'example',
-					'user' => 'root',
-					'pass' => '',
-					'prefix' => 'exp_',
-					'frozen' => false,
-					'readonly' => false,
-				),
-			),
-		),
-		'memcached' => array(
-			'enabled' => true,
-			'servers' => array(
-				array(
-					'host' => 'localhost',
-					'port' => 11211,
-					'priority' => 10,
-				),
-			),
-		),
-	);
-```
-
-Then set the configuration to the application as follows:
-
-```php
-<?php
-	$hba->setConfig( $appSettings );
-```
-
 ## Core Functionality
 

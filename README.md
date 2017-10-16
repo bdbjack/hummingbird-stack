@@ -122,7 +122,7 @@ $hba->addAction( 'initDatabases', array( '\SomeClass', 'someMethod' ) );
 
 ### Interacting with a request
 
-Hummingbird attempts to standardize interacting with requests by wrapping all of the functionality into a single controller, which is accessible using the `HummingbirdApp::runRequestFunction()` method.
+Hummingbird attempts to standardize interacting with HTTP / CLI requests by wrapping all of the functionality into a single controller, which is accessible using the `HummingbirdApp::runRequestFunction()` method.
 
 The `HummingbirdApp::runRequestFunction()` requires that the first argument passed must be the name of the `HummingbirdRequestControllerInterface` object method being called. Any arguements which should be passed to the method should be passed normally.
 
@@ -148,6 +148,53 @@ $absURI = $hba->runRequestFunction( 'getURIFromPath', '/this/is/a/path', array(
 ```
 
 ### Interacting with databases
+
+Hummingbird uses [Redbean for PHP](https://redbeanphp.com/index.php) as a foundation for interacting with databases, but adds support for table prefixes, and handles database errors internally so that they do not impact the application.
+
+Hummingbird is able to support the following types of databases by default:
+
+* MySQL
+* MariaDB
+* PosgreSQL *(if the pgsql extension is loaded in PHP)*
+* SQLite
+
+**NOTE:** support for additional database types can be added by creating a new controller which extends the `\Hummingbird\HummingbirdDatabaseControllerAbstract\` class, or which implements the `\Hummingbird\HummingbirdDatabaseControllerInterface` interface.
+
+#### Adding Databases
+
+Databases can be added via 2 methods:
+
+* [Adding Databases to the Configuration Array](../master/READMES/config.md#databases)
+* Using the `HummingbirdApp::addDatabase()` method.
+
+##### The `HummingbirdApp::addDatabase()` method
+
+The `HummingbirdApp::addDatabase()` method can be run either before or during `HummingbirdApp::run()` execution. It accepts 11 arguments:
+
+| Argument | Type | Description |
+| -------- | ---- | ----------- |
+| `key` | *string* | The key used to identify the database. The first database should always be `default` |
+| `type` | *string* | The type of database being connected to. Options are: `sqlite`, `mysql`, `pgsql` |
+| `host` | *string* | The hostname or IP address of the server being connected to. (Leave blank for `sqlite`) |
+| `port` | *interger* | The port the database server responds on. (Leave blank for `sqlite`) |
+| `name` | *string* | The name of the database or database file to be used |
+| `user` | *string* | The username used to authenticate with the database server |
+| `pass` | *string* | The password used to authenticate with the database server |
+| `prefix` | *string* | A prefix preventing accidental overwriting of tables on a shared database |
+| `frozen` | *boolean* | See [Redbean's Guide on Frozen and Fluid Modes](https://redbeanphp.com/index.php?p=/fluid_and_frozen) for more information |
+| `readonly` | *boolean* | *Not yet implemented. Please pass `false`* |
+| `overwrite` | *boolean* | Overwrite the parameters of a database which already exists with the same key |
+
+#### Using the database
+
+Hummingbird standardizes interactions with the database controller by use of the `HummingbirdApp::runDatabaseFunction()` method. `HummingbirdApp::runDatabaseFunction()` requires 2 preceding arguments:
+
+| Argument | Type | Description |
+| -------- | ---- | ----------- |
+| `key` | *string* | The key of the database to be used. |
+| `method` | *string* | The `HummingbirdDatabaseControllerInterface` method to be called |
+
+A full list of methods can be found in the [Database Controller Documentation](../master/READMES/databaseController.md)
 
 ### Interacting with the cache
 

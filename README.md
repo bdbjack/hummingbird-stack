@@ -117,7 +117,7 @@ The `HummingbirdApp::addAction()` is used to call an action from a hook. The fun
 
 ```php
 $hba->addAction( 'get_dashboard', 'render_system_dashboard' );
-$hba->addAction( 'initDatabases', array( '\SomeClass', 'someMethod' );
+$hba->addAction( 'initDatabases', array( '\SomeClass', 'someMethod' ) );
 ```
 
 ### Interacting with a request

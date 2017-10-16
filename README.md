@@ -133,7 +133,7 @@ A full list of methods can be found in the [Request Controller Documentation](..
 **Direct Method**
 ```php
 $controller = new \Hummingbird\HummingbirdDefaultRequestController( $hba );
-$absURL = $controller->getURIFromPath( '/this/is/a/path', array(
+$absURI = $controller->getURIFromPath( '/this/is/a/path', array(
     'var1' => 'foo',
     'var2' => 'bar',
 ) );
@@ -141,7 +141,7 @@ $absURL = $controller->getURIFromPath( '/this/is/a/path', array(
 
 **Masked Method**
 ```php
-$absURL = $hba->runRequestFunction( 'getURIFromPath', '/this/is/a/path', array(
+$absURI = $hba->runRequestFunction( 'getURIFromPath', '/this/is/a/path', array(
     'var1' => 'foo',
     'var2' => 'bar',
 ) );

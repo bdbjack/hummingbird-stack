@@ -15,4 +15,6 @@
 		public function db_find_all( $type, $query = null, $vars = array() );
 		public function db_count( $type, $query = null, $vars = array() );
 		public function db_wipe( $type );
+		public function getParam( $key );
+		public function noSQL();
 	}

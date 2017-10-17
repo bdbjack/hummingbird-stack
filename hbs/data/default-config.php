@@ -37,6 +37,7 @@
 		),
 		'databases' => array(
 			'enabled' => false,
+			'nosqlController' => '\Hummingbird\HummingbirdDefaultNoSQLController',
 			'servers' => array(
 				'default' => array(
 					'type' => 'sqlite',

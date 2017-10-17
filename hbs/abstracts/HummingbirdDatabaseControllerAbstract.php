@@ -177,6 +177,14 @@
 			return false;
 		}
 
+		function noSQL() {
+			$nscc = $this->hba->getConfigSetting( 'databases', 'nosqlController' );
+			if ( __hba_is_instance_of( $nscc, 'Hummingbird\HummingbirdNoSQLControllerInterface' ) ) {
+				return new $nscc( $this );
+			}
+			return false;
+		}
+
 		function __get( string $name ) {
 			return null;
 		}

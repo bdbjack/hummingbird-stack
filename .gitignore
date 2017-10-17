@@ -42,3 +42,8 @@ sftp-config.json
 
 # htaccess
 .htaccess
+index.php
+config.php
+/bin/*
+/templates/*
+/resources/*

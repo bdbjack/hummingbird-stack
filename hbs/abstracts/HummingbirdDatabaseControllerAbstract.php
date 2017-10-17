@@ -3,17 +3,18 @@
 
 	abstract class HummingbirdDatabaseControllerAbstract implements \Hummingbird\HummingbirdDatabaseControllerInterface {
 		protected $hba;
-		private $key;
-		private $type;
-		private $host;
-		private $port;
-		private $name;
-		private $user;
-		private $pass;
-		private $prefix;
-		private $frozen = false;
-		private $readonly = false;
-		private $upn;
+		protected $key;
+		protected $type;
+		protected $host;
+		protected $port;
+		protected $name;
+		protected $user;
+		protected $pass;
+		protected $prefix;
+		protected $frozen = false;
+		protected $readonly = false;
+		protected $upn;
+		protected $client;
 
 		function __construct( \Hummingbird\HummingbirdApp $hba, string $key, string $type = 'sqlite', string $host = '', int $port = 0, string $name = '/tmp/dbfile.db', string $user = '', string $pass = '', string $prefix = '', bool $frozen = false, bool $readonly = false ) {
 			$this->hba = $hba;
@@ -30,6 +31,16 @@
 			switch ( $type ) {
 				case 'sqlite':
 					$this->upn = sprintf( 'sqlite:%s', $this->name );
+					break;
+
+				case 'elasticsearch':
+					$protocol = ( 'http' == strtolower( $this->prefix ) ) ? 'http' : 'https';
+					if ( ! __hba_is_empty( $this->user ) && ! __hba_is_empty( $this->pass ) ) {
+						$this->upn = sprintf( '%s://%s:%s@%s:%d', $protocol, $this->user, $this->pass, $this->host, $this->port );
+					}
+					else {
+						$this->upn = sprintf( '%s://%s:%d', $protocol, $this->host, $this->port );
+					}
 					break;
 
 				default:
@@ -155,6 +166,17 @@
 			return \R::getRedBean()->wipe( $ot );
 		}
 
+		function getParam( $key ) {
+			if (
+				'hba' !== $key
+				&& 'pass' !== $key
+				&& 'upn' !== $key
+			) {
+				return $this->{$key};
+			}
+			return false;
+		}
+
 		function __get( string $name ) {
 			return null;
 		}
@@ -172,19 +194,29 @@
 		}
 
 		function __call( string $name, array $arguments = array() ) {
-			if ( $this->isRedBean() ) {
-				\R::selectDatabase( $this->key );
-				if ( ! __hba_is_empty( $this->prefix ) && true !== $this->readonly && in_array( $name, array(
-					'dispense','dispenseAll','load','loadAll','find','findOne','findAll','count','wipe',
-				) ) ) {
-					$name = sprintf( 'prefixed%s', ucfirst( $name ) );
-				}
-				return forward_static_call_array( array( '\R', $name ), $arguments );
+			switch ( true ) {
+				case $this->isRedBean():
+					\R::selectDatabase( $this->key );
+					if ( ! __hba_is_empty( $this->prefix ) && true !== $this->readonly && in_array( $name, array(
+						'dispense','dispenseAll','load','loadAll','find','findOne','findAll','count','wipe',
+					) ) ) {
+						$name = sprintf( 'prefixed%s', ucfirst( $name ) );
+					}
+					return forward_static_call_array( array( '\R', $name ), $arguments );
+					break;
+
+				case 'elasticsearch' == $this->type && is_a( $this->client, '\Elasticsearch\Client' ):
+					return call_user_func_array( array( $this->client, $name ), $arguments );
+					break;
+
+				default:
+					$f = sprintf( '%s_%s', strtolower( $this->type ), $name );
+					if ( method_exists( $this, $f ) ) {
+						return call_user_func_array( array( $this, $f ), $arguments );
+					}
+					break;
 			}
-			else {
-				$f = sprintf( '%s_%s', strtolower( $this->type ), $name );
-				return call_user_func_array( array( $this, $f ), $arguments );
-			}
+			return false;
 		}
 
 		static function __callStatic( string $name, array $arguments = array() ) {
@@ -193,5 +225,34 @@
 
 		private function fixBeanType( $input ) {
 			return strtolower( preg_replace( '/(?<!^)[A-Z]/', '_$0', $input ) );
+		}
+
+		private function elasticsearch_init() {
+			if ( class_exists( '\Elasticsearch\ClientBuilder' ) ) {
+				$cb = \Elasticsearch\ClientBuilder::create();
+				$cb->setHosts( array( $this->upn ) );
+				$client = $cb->build();
+				if ( is_a( $client, '\Elasticsearch\Client' ) ) {
+					$this->client = $client;
+					$indexParams = array( 'index' => $this->name );
+					try {
+						$indexExists = $this->client->indices()->exists( $indexParams );
+					}
+					catch ( \Exception $e ) {
+						$indexExists = false;
+					}
+					if ( false == $indexExists ) {
+						try {
+							$create = $this->client->indices()->create( $indexParams );
+						}
+						catch ( \Exception $e ) {
+							throw new \Exception( sprintf( 'Could not create index "%s"', $this->name ), 1 );
+						}
+					}
+				}
+			}
+			else {
+				throw new \Exception( 'Missing Elasticsearch Libraries', 1 );
+			}
 		}
 	}

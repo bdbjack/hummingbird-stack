@@ -11,7 +11,7 @@
 	 */
 
 	class HummingbirdApp {
-		private $version = '0.0.1';
+		private $version = '1.0.0';
 		private $baseDir = '';
 		private $hummbingbirdBaseDir = '';
 		private $baseUri = '';
@@ -237,9 +237,6 @@
 			$this->doAction( 'initSession' );
 			$this->doAction( 'initAuthentication' );
 			$this->doAction( 'initRouting' );
-			if ( extension_loaded( 'newrelic' ) && true == $this->getConfigSetting( 'newrelic', 'enabled' ) ) {
-				newrelic_end_of_transaction();
-			}
 			if ( true == $render ) {
 				$this->doAction( 'render' );
 			}

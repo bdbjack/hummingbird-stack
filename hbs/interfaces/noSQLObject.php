@@ -19,8 +19,8 @@
 				'type' => $this->_type,
 				'id' => $this->_id,
 			);
-			if ( __hba_can_loop( $this->body ) ) {
-				foreach ( $this->body as $key => $value ) {
+			if ( __hba_can_loop( $this->_body ) ) {
+				foreach ( $this->_body as $key => $value ) {
 					$return[ $key ] = $value;
 				}
 			}
@@ -32,8 +32,8 @@
 			$return->index = $this->_index;
 			$return->type = $this->_type;
 			$return->id = $this->_id;
-			if ( __hba_can_loop( $this->body ) ) {
-				foreach ( $this->body as $key => $value ) {
+			if ( __hba_can_loop( $this->_body ) ) {
+				foreach ( $this->_body as $key => $value ) {
 					$return->{$key} = $value;
 				}
 			}
@@ -58,8 +58,8 @@
 			else {
 				$bean = $dbc->dispense( $this->_type );
 			}
-			if ( __hba_can_loop( $this->body ) ) {
-				foreach ( $this->body as $key => $value ) {
+			if ( __hba_can_loop( $this->_body ) ) {
+				foreach ( $this->_body as $key => $value ) {
 					if ( is_object( $value ) || is_array( $value ) ) {
 						$bean->{$key} = serialize( $value );
 					}
@@ -72,7 +72,13 @@
 		}
 
 		function asElasticsearchdoc() {
-			return json_decode( $this->asJSON(), true );
+			$doc = array(
+				'index' => $this->_index,
+				'type' => $this->_type,
+				'id' => $this->_id,
+				'body' => $this->_body,
+			);
+			return $doc;
 		}
 
 		public static function fromRedbean( \RedBeanPHP\OODBBean $bean, \Hummingbird\HummingbirdDatabaseControllerInterface $dbc ) {
@@ -126,7 +132,7 @@
 					break;
 
 				default:
-					return __hba_get_array_key( $name, $this->body, null );
+					return __hba_get_array_key( $name, $this->_body, null );
 					break;
 			}
 		}

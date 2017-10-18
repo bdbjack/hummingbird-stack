@@ -59,15 +59,41 @@
 
 		}
 
-		function store( \Hummingbird\noSQLObject $object ) {
+		function store( \Hummingbird\noSQLObject &$object ) {
+			$sid = null;
+			switch ( $this->dbc->getParam( 'type' ) ) {
+				case 'elasticsearch':
+					$params = $object->asElasticsearchdoc();
+					try {
+						unset( $params['id'] );
+						$response = $this->dbc->index( $params );
+					}
+					catch ( \Exception $e ) {
+						$response = json_decode( $e->getMessage() );
+					}
+					$sid = __hba_get_array_key( '_id', $response );
+					if ( true == __hba_get_array_key( 'created', $response ) ) {
+						$object->id = $sid;
+					}
+					break;
+
+				default:
+					$bean = $object->asRedbean( $this->dbc );
+					$response = $this->dbc->store( $bean );
+					if ( intval( $response ) > 0 ) {
+						$object->id = intval( $response );
+						$sid = intval( $response );
+					}
+					break;
+			}
+			return $sid;
+		}
+
+		function storeAll( &$objects ) {
 
 		}
 
-		function storeAll( $objects ) {
-
-		}
-
-		function trash( \Hummingbird\noSQLObject $object ) {
+		function trash( \Hummingbird\noSQLObject &$object ) {
 
 		}
 

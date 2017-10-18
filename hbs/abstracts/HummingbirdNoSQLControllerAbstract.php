@@ -16,14 +16,17 @@
 			switch ( $this->dbc->getParam( 'type' ) ) {
 				case 'elasticsearch':
 					try {
-						$doc = json_decode( $this->dbc->get( array(
+						$doc = $this->dbc->get( array(
 							'index' => $this->dbc->getParam( 'name' ),
 							'type' => $type,
 							'id' => $id,
-						) ) );
+						) );
 					}
 					catch ( \Exception $e ) {
 						$doc = json_decode( $e->getMessage() );
+					}
+					if ( ! is_object( $doc ) ) {
+						$this->makeElasticsearchDocAsObject( $doc );
 					}
 					$ret = \Hummingbird\noSQLObject::fromElasticsearchdoc( $doc );
 					break;
@@ -37,18 +40,13 @@
 		}
 
 		function loadAll( string $type, array $ids ) {
-			switch ( $this->dbc->getParam( 'type' ) ) {
-				case 'elasticsearch':
-					
-					break;
-
-				default:
-					$beans = $this->dbc->loadAll( $type, $ids );
-
-					//$ret = \Hummingbird\noSQLObject::fromRedbean( $bean, $this->dbc );
-					break;
+			$return = array();
+			if ( can_loop( $ids ) ) {
+				foreach ( $ids as $id ) {
+					$return[ $id ] = $this->load( $type, $id );
+				}
 			}
-			return $ret;
+			return $return;
 		}
 
 		function find( $type, $query ) {
@@ -64,12 +62,25 @@
 			switch ( $this->dbc->getParam( 'type' ) ) {
 				case 'elasticsearch':
 					$params = $object->asElasticsearchdoc();
-					try {
-						unset( $params['id'] );
-						$response = $this->dbc->index( $params );
+					if ( __hba_is_empty( $object->id ) ) {
+						try {
+							unset( $params['id'] );
+							$response = $this->dbc->index( $params );
+						}
+						catch ( \Exception $e ) {
+							$response = json_decode( $e->getMessage() );
+						}
 					}
-					catch ( \Exception $e ) {
-						$response = json_decode( $e->getMessage() );
+					else {
+						try {
+							$params['body'] = array(
+								'doc' => $params['body'],
+							);
+							$response = $this->dbc->update( $params );
+						}
+						catch ( \Exception $e ) {
+							$response = json_decode( $e->getMessage() );
+						}
 					}
 					$sid = __hba_get_array_key( '_id', $response );
 					if ( true == __hba_get_array_key( 'created', $response ) ) {
@@ -90,7 +101,14 @@
 		}
 
 		function storeAll( &$objects ) {
-
+			$sids = array();
+			if ( can_loop( $objects ) ) {
+				foreach ( $objects as $obj ) {
+					$sid = $this->store( $obj );
+					$sids[ $obj->id ] = $sid;
+				}
+			}
+			return $sids;
 		}
 
 		function trash( \Hummingbird\noSQLObject &$object ) {
@@ -111,5 +129,10 @@
 
 		protected function getNoSQLObject( $index, $type, $id = '' ) {
 			return new \Hummingbird\noSQLObject( $index, $type, $id );
+		}
+
+		protected function makeElasticsearchDocAsObject( array &$doc ) {
+			$doc = json_decode( json_encode( $doc ) );
+			return $doc;
 		}
 	}

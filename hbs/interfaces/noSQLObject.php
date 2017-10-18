@@ -114,6 +114,9 @@
 					$obj->id = __hba_get_object_property( '_id', $doc, '' );
 				}
 			}
+			foreach ( __hba_get_object_property( '_source', $doc, new \stdClass ) as $key => $value ) {
+				$obj->{$key} = $value;
+			}
 			return $obj;
 		}
 

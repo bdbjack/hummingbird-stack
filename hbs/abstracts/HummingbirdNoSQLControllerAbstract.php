@@ -112,11 +112,43 @@
 		}
 
 		function trash( \Hummingbird\noSQLObject &$object ) {
+			switch ( $this->dbc->getParam( 'type' ) ) {
+				case 'elasticsearch':
+					$params = $object->asElasticsearchdoc();
+					if ( __hba_is_empty( $object->id ) ) {
+						$response = true;
+					}
+					else {
+						try {
+							unset( $params['body'] );
+							$response = $this->dbc->delete( $params );
+						}
+						catch ( \Exception $e ) {
+							$response = json_decode( $e->getMessage() );
+						}
+						$response = ( 'deleted' == get_array_key( 'result', $response ) );
+					}
+					break;
 
+				default:
+					$bean = $object->asRedbean( $this->dbc );
+					$this->dbc->trash( $bean );
+					$response = true;
+					break;
+			}
+			$object = null;
+			return $response;
 		}
 
-		function trashAll( $objects ) {
-
+		function trashAll( array &$objects ) {
+			$return = array();
+			if ( can_loop( $objects ) ) {
+				foreach ( $objects as $index => $obj ) {
+					$return[ $obj->id ] = $this->trash( $obj );
+					$objects[ $index ] = $obj;
+				}
+			}
+			return $return;
 		}
 
 		function wipe( $type ) {
@@ -134,5 +166,9 @@
 		protected function makeElasticsearchDocAsObject( array &$doc ) {
 			$doc = json_decode( json_encode( $doc ) );
 			return $doc;
+		}
+
+		protected static function camelcaseToUnderscore( $input ) {
+			return strtolower( preg_replace( '/(?<!^)[A-Z]/', '_$0', $input ) );
 		}
 	}

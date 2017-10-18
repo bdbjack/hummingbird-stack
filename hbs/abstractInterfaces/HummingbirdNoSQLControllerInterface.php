@@ -11,7 +11,7 @@
 		public function store( \Hummingbird\noSQLObject &$object );
 		public function storeAll( &$objects );
 		public function trash( \Hummingbird\noSQLObject &$object );
-		public function trashAll( $objects );
+		public function trashAll( array &$objects );
 		public function wipe( $type );
 		public function nuke();
 	}

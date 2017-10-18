@@ -6,8 +6,8 @@
 		public function dispense( string $type );
 		public function load( string $type, string $id );
 		public function loadAll( string $type, array $ids );
-		public function find( $type, $query );
-		public function findOne( $type, $query );
+		public function find( string $type, $query, array $bindings = array() );
+		public function findOne( string $type, $query, array $bindings = array() );
 		public function store( \Hummingbird\noSQLObject &$object );
 		public function storeAll( &$objects );
 		public function trash( \Hummingbird\noSQLObject &$object );

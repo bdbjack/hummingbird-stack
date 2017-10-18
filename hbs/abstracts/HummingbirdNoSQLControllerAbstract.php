@@ -41,7 +41,7 @@
 
 		function loadAll( string $type, array $ids ) {
 			$return = array();
-			if ( can_loop( $ids ) ) {
+			if ( __hba_can_loop( $ids ) ) {
 				foreach ( $ids as $id ) {
 					$return[ $id ] = $this->load( $type, $id );
 				}
@@ -49,12 +49,55 @@
 			return $return;
 		}
 
-		function find( $type, $query ) {
+		function find( string $type, $query, array $bindings = array() ) {
+			$results = array();
+			switch ( $this->dbc->getParam( 'type' ) ) {
+				case 'elasticsearch':
+					$params = array(
+						'index' => $this->dbc->getParam( 'name' ),
+						'type' => $type,
+						'body' => array(
+							'query' => $query,
+						),
+					);
+					try {
+						$rawRes = $this->dbc->search( $params );
+						$hits = __hba_get_array_key( 'hits', __hba_get_array_key( 'hits', $rawRes, array() ), array() );
+						if ( __hba_can_loop( $hits ) ) {
+							foreach ( $hits as $doc ) {
+								if ( ! is_object( $doc ) ) {
+									$nd = $this->makeElasticsearchDocAsObject( $doc );
+									$obj = \Hummingbird\noSQLObject::fromElasticsearchdoc( $nd );
+								}
+								else {
+									$obj = \Hummingbird\noSQLObject::fromElasticsearchdoc( $doc );
+								}
+							}
+							$results[ $obj->id ] = $obj;
+						}
+					}
+					catch ( \Exception $e ) {}
+					break;
 
+				default:
+					$rawRes = $this->dbc->find( $type, $query, $bindings );
+					if ( __hba_can_loop( $rawRes ) ) {
+						foreach ( $rawRes as $id => $bean ) {
+							$results[ $id ] = \Hummingbird\noSQLObject::fromRedbean( $bean, $this->dbc );
+						}
+					}
+					break;
+			}
+			return $results;
 		}
 
-		function findOne( $type, $query ) {
-
+		function findOne( string $type, $query, array $bindings = array() ) {
+			$all = $this->find( $type, $query, $bindings );
+			if ( __hba_can_loop( $all ) ) {
+				$objs = array_values( $all );
+				return array_shift( $objs );
+			}
+			return false;
 		}
 
 		function store( \Hummingbird\noSQLObject &$object ) {
@@ -102,7 +145,7 @@
 
 		function storeAll( &$objects ) {
 			$sids = array();
-			if ( can_loop( $objects ) ) {
+			if ( __hba_can_loop( $objects ) ) {
 				foreach ( $objects as $obj ) {
 					$sid = $this->store( $obj );
 					$sids[ $obj->id ] = $sid;
@@ -126,7 +169,7 @@
 						catch ( \Exception $e ) {
 							$response = json_decode( $e->getMessage() );
 						}
-						$response = ( 'deleted' == get_array_key( 'result', $response ) );
+						$response = ( 'deleted' == __hba_get_array_key( 'result', $response ) );
 					}
 					break;
 
@@ -142,7 +185,7 @@
 
 		function trashAll( array &$objects ) {
 			$return = array();
-			if ( can_loop( $objects ) ) {
+			if ( __hba_can_loop( $objects ) ) {
 				foreach ( $objects as $index => $obj ) {
 					$return[ $obj->id ] = $this->trash( $obj );
 					$objects[ $index ] = $obj;
@@ -152,11 +195,38 @@
 		}
 
 		function wipe( $type ) {
+			switch ( $this->dbc->getParam( 'type' ) ) {
+				case 'elasticsearch':
+					$return = false;
+					break;
 
+				default:
+					$return = $this->dbc->wipe( $type );
+					break;
+			}
+			return $return;
 		}
 
 		function nuke() {
+			switch ( $this->dbc->getParam( 'type' ) ) {
+				case 'elasticsearch':
+					$params = array(
+						'index' => $this->dbc->getParam( 'name' ),
+					);
+					try {
+						$res = $this->dbc->indices()->delete( $params );
+					}
+					catch ( \Exception $e ) {
+						$res = json_decode( $e->getMessage() );
+					}
+					$return = ( true == __hba_get_array_key( 'acknowledged', $res ) );
+					break;
 
+				default:
+					$return = $this->dbc->nuke();
+					break;
+			}
+			return $return;
 		}
 
 		protected function getNoSQLObject( $index, $type, $id = '' ) {

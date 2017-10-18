@@ -242,21 +242,6 @@
 				$client = $cb->build();
 				if ( is_a( $client, '\Elasticsearch\Client' ) ) {
 					$this->client = $client;
-					$indexParams = array( 'index' => $this->name );
-					try {
-						$indexExists = $this->client->indices()->exists( $indexParams );
-					}
-					catch ( \Exception $e ) {
-						$indexExists = false;
-					}
-					if ( false == $indexExists ) {
-						try {
-							$create = $this->client->indices()->create( $indexParams );
-						}
-						catch ( \Exception $e ) {
-							throw new \Exception( sprintf( 'Could not create index "%s"', $this->name ), 1 );
-						}
-					}
 				}
 			}
 			else {

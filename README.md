@@ -12,6 +12,7 @@ This framework integrates the following libraries:
 * [twilio/sdk](https://www.twilio.com/docs/libraries)
 * [wisembly/elephant.io](https://github.com/Wisembly/elephant.io)
 * [Redbean for PHP](https://redbeanphp.com/index.php)
+* [elasticsearch/elasticsearch](https://github.com/elastic/elasticsearch-php)
 
 ## Using Hummingbird
 
@@ -157,6 +158,7 @@ Hummingbird is able to support the following types of databases by default:
 * MariaDB
 * PosgreSQL *(if the pgsql extension is loaded in PHP)*
 * SQLite
+* Elasticsearch
 
 **NOTE:** support for additional database types can be added by creating a new controller which extends the `\Hummingbird\HummingbirdDatabaseControllerAbstract\` class, or which implements the `\Hummingbird\HummingbirdDatabaseControllerInterface` interface.
 
@@ -174,13 +176,13 @@ The `HummingbirdApp::addDatabase()` method can be run either before or during `H
 | Argument | Type | Description |
 | -------- | ---- | ----------- |
 | `key` | *string* | The key used to identify the database. The first database should always be `default` |
-| `type` | *string* | The type of database being connected to. Options are: `sqlite`, `mysql`, `pgsql` |
+| `type` | *string* | The type of database being connected to. Options are: `sqlite`, `mysql`, `pgsql`, `elasticsearch` |
 | `host` | *string* | The hostname or IP address of the server being connected to. (Leave blank for `sqlite`) |
 | `port` | *interger* | The port the database server responds on. (Leave blank for `sqlite`) |
 | `name` | *string* | The name of the database or database file to be used |
 | `user` | *string* | The username used to authenticate with the database server |
 | `pass` | *string* | The password used to authenticate with the database server |
-| `prefix` | *string* | A prefix preventing accidental overwriting of tables on a shared database |
+| `prefix` | *string* | A prefix preventing accidental overwriting of tables on a shared database. (Not used in `type:elasticsearch`) |
 | `frozen` | *boolean* | See [Redbean's Guide on Frozen and Fluid Modes](https://redbeanphp.com/index.php?p=/fluid_and_frozen) for more information |
 | `readonly` | *boolean* | *Not yet implemented. Please pass `false`* |
 | `overwrite` | *boolean* | Overwrite the parameters of a database which already exists with the same key |

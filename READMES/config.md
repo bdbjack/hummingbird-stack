@@ -92,13 +92,13 @@ The array of servers is an associative array with the key being an identifier fo
 
 | Key | Description |
 | --- | ----------- |
-| `type` | The type of database being connected to. Options are: `sqlite`, `mysql`, `pgsql` |
+| `type` | The type of database being connected to. Options are: `sqlite`, `mysql`, `pgsql`, 'elasticsearch' |
 | `host` | The hostname or IP address of the server being connected to. (Leave blank for `sqlite`) |
 | `port` | The port the database server responds on. (Leave blank for `sqlite`) |
 | `name` | The name of the database or database file to be used |
 | `user` | The username used to authenticate with the database server |
 | `pass` | The password used to authenticate with the database server |
-| `prefix` | A prefix preventing accidental overwriting of tables on a shared database |
+| `prefix` | A prefix preventing accidental overwriting of tables on a shared database. (Not used in `type:elasticsearch`) |
 | `frozen` | See [Redbean's Guide on Frozen and Fluid Modes](https://redbeanphp.com/index.php?p=/fluid_and_frozen) for more information |
 
 #### Example Database Configuration

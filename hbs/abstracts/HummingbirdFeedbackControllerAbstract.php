@@ -43,25 +43,30 @@
 				case 'json':
 					http_response_code( $this->fbo->code );
 					header( 'Content-Type: application/json' );
-					echo json_encode( $this->fbo, JSON_PRETTY_PRINT );
+					echo $this->hba->doFilter( 'filterJSONFeedback', json_encode( $this->fbo, JSON_PRETTY_PRINT ) );
 					break;
 
 				case 'xml':
 					http_response_code( $this->fbo->code );
 					header( 'Content-Type: text/xml' );
-					echo $this->xml_encode( $this->fbo );
+					echo $this->hba->doFilter( 'filterXMLFeedback', $this->xml_encode( $this->fbo ) );
 					break;
 
 				default:
 					http_response_code( $this->fbo->code );
 					header( 'Content-Type: text/plain' );
-					$output = '';
-					$output .= sprintf( 'Status: %s', $this->fbo->status ) . "\r\n";
-					$output .= sprintf( 'Data: %s', print_r( $this->fbo->data, true ) ) . "\r\n";
-					$output .= sprintf( 'Message: %s', $this->fbo->message ) . "\r\n";
-					$output .= sprintf( 'Errors: %s', print_r( $this->fbo->errors, true ) ) . "\r\n";
-					$output .= sprintf( 'Code: %d', $this->fbo->code ) . "\r\n";
-					echo $output;
+					if ( method_exists( $this, 'getPlaintextFeedback' ) ) {
+						echo $this->hba->doFilter( 'filterPLAINTEXTFeedback', $this->getPlaintextFeedback() );
+					}
+					else {
+						$output = '';
+						$output .= sprintf( 'Status: %s', $this->fbo->status ) . "\r\n";
+						$output .= sprintf( 'Data: %s', print_r( $this->fbo->data, true ) ) . "\r\n";
+						$output .= sprintf( 'Message: %s', $this->fbo->message ) . "\r\n";
+						$output .= sprintf( 'Errors: %s', print_r( $this->fbo->errors, true ) ) . "\r\n";
+						$output .= sprintf( 'Code: %d', $this->fbo->code ) . "\r\n";
+						echo $output;
+					}
 					break;
 			}
 			if ( true == $exit ) {

@@ -770,7 +770,10 @@
 			$aR = ( false === strpos( $a, '(' ) );
 			$bR = ( false === strpos( $b, '(' ) );
 			if ( $aR == $bR ) {
-				return 0;
+				if ( strlen( $a ) == strlen( $b ) ) {
+					return 0;
+				}
+				return ( strlen( $a ) < strlen( $b ) ) ? 1 : -1;
 			}
 			return ( true == $ar ) ? -1 : 1;
 		}

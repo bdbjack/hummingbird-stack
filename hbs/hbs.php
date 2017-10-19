@@ -188,6 +188,22 @@
 			return true;
 		}
 
+		public function getRoutes( $routeCheckSort = false ) {
+			if ( true == $routeCheckSort ) {
+				$return = array();
+				if ( can_loop( $this->_routes ) ) {
+					foreach ( $this->_routes as $method => $routes ) {
+						uksort( $routes, array( get_called_class(), 'giveRegexPriority' ) );
+						$return[ $method ] = $routes;
+					}
+				}
+			}
+			else {
+				$return = $this->_routes;
+			}
+			return $return;
+		}
+
 		public function addDatabase( string $key, string $type = 'sqlite', string $host = '', int $port = 0, string $name = '/tmp/dbfile.db', string $user = '', string $pass = '', string $prefix = '', bool $frozen = false, bool $readonly = false, bool $overwrite = false ) {
 			if ( false == $this->getConfigSetting( 'databases', 'enabled' ) ) {
 				return false;
@@ -615,6 +631,7 @@
 				$fp = $path;
 			}
 			else {
+				uksort( $methodRoutes, array( get_called_class(), 'giveRegexPriority' ) );
 				foreach ( $methodRoutes as $pattern => $info ) {
 					if ( '/' !== $pattern ) {
 						$pat = __hba_sanitize_regex( $pattern );
@@ -747,6 +764,15 @@
 			else {
 				return ( strlen( $a ) < strlen( $b ) ) ? -1 : 1;
 			}
+		}
+
+		private static function giveRegexPriority( $a, $b ) {
+			$aR = ( false === strpos( $a, '(' ) );
+			$bR = ( false === strpos( $b, '(' ) );
+			if ( $aR == $bR ) {
+				return 0;
+			}
+			return ( true == $ar ) ? -1 : 1;
 		}
 
 		private static function patternIsExactMatch( $pattern ) {

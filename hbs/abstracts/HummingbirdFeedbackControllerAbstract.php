@@ -213,6 +213,7 @@
 					if ( is_numeric( $key ) ) {
 						$key = sprintf( 'item_%s', $key );
 					}
+					$this->makeXMLKeySafe( $key );
 					if ( is_array( $value ) ) {
 						if ( __hba_beginning_matches( 'item_', $key ) ) {
 							$itemId = str_replace( 'item_', '', $key );
@@ -239,6 +240,16 @@
 					}
 				}
 			}
+		}
+
+		protected function makeXMLKeySafe( &$key ) {
+			$key = trim( $key );
+			if ( preg_match("/[^A-Za-z0-9]/", $key ) ) {
+				$key = ucwords( $key );
+				$key = lcfirst( $key );
+			}
+			$key = preg_replace( '/[^A-Za-z0-9]/', '', $key );
+			return $key;
 		}
 
 		protected function pretty_print_xml( $xml ) {

@@ -24,10 +24,6 @@
 				is_object( $ci )
 				&& property_exists( $ci, 'id' )
 				&& $si == $ci->id
-				&& property_exists( $ci, 'userIP' )
-				&& $ci->userIP == $this->hba->runRequestFunction( 'getCurrentUserIP' )
-				&& property_exists( $ci, 'userAgent' )
-				&& $ci->userAgent == $this->hba->runRequestFunction( 'getRequestHeaders', 'User-Agent' )
 				&& property_exists( $ci, 'sessionTime' )
 				&& $ci->sessionTime <= time()
 				&& time() <= $ci->sessionTime + ( 86400 * 30 )

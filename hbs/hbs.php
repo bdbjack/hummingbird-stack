@@ -496,7 +496,7 @@
 				$this->__hbs_feedback_controller = new $fcc( $this );
 			}
 			else {
-				throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdFeedbackControllerInterface', $ecc ), 1 );
+				throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdFeedbackControllerInterface', $fcc ), 1 );
 			}
 			$ecc = $this->getConfigSetting( 'application', 'errorController' );
 			if ( __hba_is_instance_of( $ecc, 'Hummingbird\HummingbirdErrorControllerInterface' ) ) {

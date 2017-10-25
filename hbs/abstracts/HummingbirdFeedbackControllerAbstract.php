@@ -35,26 +35,34 @@
 			$fbt = $this->getFeedbackType();
 			switch( $fbt ) {
 				case 'html':
-					http_response_code( $this->fbo->code );
-					header( 'Content-Type: text/html' );
+					if ( ! headers_sent() ) {
+						http_response_code( $this->fbo->code );
+						header( 'Content-Type: text/html' );
+					}
 					echo $this->getHtmlFeedback();
 					break;
 
 				case 'json':
-					http_response_code( $this->fbo->code );
-					header( 'Content-Type: application/json' );
+					if ( ! headers_sent() ) {
+						http_response_code( $this->fbo->code );
+						header( 'Content-Type: application/json' );
+					}
 					echo $this->hba->doFilter( 'filterJSONFeedback', json_encode( $this->fbo, JSON_PRETTY_PRINT ) );
 					break;
 
 				case 'xml':
-					http_response_code( $this->fbo->code );
-					header( 'Content-Type: text/xml' );
+					if ( ! headers_sent() ) {
+						http_response_code( $this->fbo->code );
+						header( 'Content-Type: text/xml' );
+					}
 					echo $this->hba->doFilter( 'filterXMLFeedback', $this->xml_encode( $this->fbo ) );
 					break;
 
 				default:
-					http_response_code( $this->fbo->code );
-					header( 'Content-Type: text/plain' );
+					if ( ! headers_sent() ) {
+						http_response_code( $this->fbo->code );
+						header( 'Content-Type: text/plain' );
+					}
 					if ( method_exists( $this, 'getPlaintextFeedback' ) ) {
 						echo $this->hba->doFilter( 'filterPLAINTEXTFeedback', $this->getPlaintextFeedback() );
 					}

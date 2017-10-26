@@ -252,11 +252,11 @@
 
 		protected function makeXMLKeySafe( &$key ) {
 			$key = trim( $key );
-			if ( preg_match("/[^A-Za-z0-9]/", $key ) ) {
+			if ( preg_match("/[^A-Za-z0-9_]/", $key ) ) {
 				$key = ucwords( $key );
 				$key = lcfirst( $key );
 			}
-			$key = preg_replace( '/[^A-Za-z0-9]/', '', $key );
+			$key = preg_replace( '/[^A-Za-z0-9_]/', '', $key );
 			return $key;
 		}
 

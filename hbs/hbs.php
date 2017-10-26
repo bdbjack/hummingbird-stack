@@ -775,7 +775,7 @@
 				}
 				return ( strlen( $a ) < strlen( $b ) ) ? 1 : -1;
 			}
-			return ( true == $ar ) ? -1 : 1;
+			return ( true == $aR ) ? -1 : 1;
 		}
 
 		private static function patternIsExactMatch( $pattern ) {

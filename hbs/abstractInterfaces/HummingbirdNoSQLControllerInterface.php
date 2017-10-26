@@ -4,6 +4,7 @@
 	interface HummingbirdNoSQLControllerInterface {
 		public function __construct( \Hummingbird\HummingbirdDatabaseControllerInterface $dbc );
 		public function dispense( string $type );
+		public function count( string $type, $query, array $bindings = array() );
 		public function load( string $type, string $id );
 		public function loadAll( string $type, array $ids );
 		public function find( string $type, $query, array $bindings = array() );

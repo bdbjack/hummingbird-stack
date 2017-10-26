@@ -12,6 +12,36 @@
 			return $this->getNoSQLObject( $this->dbc->getParam( 'name' ), $type );
 		}
 
+		function count( string $type, $query, array $bindings = array() ) {
+			$results = 0;
+			switch ( $this->dbc->getParam( 'type' ) ) {
+				case 'elasticsearch':
+					if ( ! is_array( $query ) || ! __hba_can_loop( $query ) ) {
+						$query = array(
+							'query' => array(
+								'match_all' => new \stdClass(),
+							),
+						);
+					}
+					$params = array(
+						'index' => $this->dbc->getParam( 'name' ),
+						'type' => $type,
+						'body' => $query,
+					);
+					try {
+						$rawRes = $this->dbc->count( $params );
+						$results = intval( __hba_get_array_key( 'count', $rawRes, array() ) );
+					}
+					catch ( \Exception $e ) {}
+					break;
+
+				default:
+					$results = intval( $this->dbc->count( $type, $query, $bindings ) );
+					break;
+			}
+			return $results;
+		}
+
 		function load( string $type, string $id ) {
 			switch ( $this->dbc->getParam( 'type' ) ) {
 				case 'elasticsearch':
@@ -53,12 +83,17 @@
 			$results = array();
 			switch ( $this->dbc->getParam( 'type' ) ) {
 				case 'elasticsearch':
+					if ( ! is_array( $query ) || ! __hba_can_loop( $query ) ) {
+						$query = array(
+							'query' => array(
+								'match_all' => new \stdClass(),
+							),
+						);
+					}
 					$params = array(
 						'index' => $this->dbc->getParam( 'name' ),
 						'type' => $type,
-						'body' => array(
-							'query' => $query,
-						),
+						'body' => $query,
 					);
 					try {
 						$rawRes = $this->dbc->search( $params );

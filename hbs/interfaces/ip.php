@@ -40,7 +40,9 @@
 				}
 				else {
 					$this->_geo['region'] = null;
-					$this->_geo['timezone'] = geoip_time_zone_by_country_and_region( $this->_geo['country'] );
+					if ( ! __hba_is_empty( $this->_geo['country'] ) ) {
+						$this->_geo['timezone'] = geoip_time_zone_by_country_and_region( $this->_geo['country'] );
+					}
 				}
 				$this->_geo['valid'] = ( ! __hba_is_empty( $this->_geo['continent'] ) );
 			}

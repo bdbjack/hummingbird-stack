@@ -107,8 +107,8 @@
 								else {
 									$obj = \Hummingbird\noSQLObject::fromElasticsearchdoc( $doc );
 								}
+								$results[ $obj->id ] = $obj;
 							}
-							$results[ $obj->id ] = $obj;
 						}
 					}
 					catch ( \Exception $e ) {}

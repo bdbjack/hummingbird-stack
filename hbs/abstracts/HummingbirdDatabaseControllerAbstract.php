@@ -68,7 +68,9 @@
 				try {
 					\R::addDatabase( $key, $this->upn, $this->user, $this->pass, $this->frozen );
 				}
-				catch ( \Exception $e ) {}
+				catch ( \Exception $e ) {
+					$this->handleException( $e );
+				}
 			}
 			else {
 				$setupFunction = sprintf( '%s_init', strtolower( $this->type ) );
@@ -185,6 +187,10 @@
 			return false;
 		}
 
+		function handleException( $e ) {
+			$this->hba->runErrorFunction( 'writeToLogFile', sprintf( 'Database Reported Error: %s', $e->getMessage() ) );
+		}
+
 		function __get( string $name ) {
 			return null;
 		}
@@ -231,11 +237,11 @@
 			return false;
 		}
 
-		private function fixBeanType( $input ) {
+		protected function fixBeanType( $input ) {
 			return strtolower( preg_replace( '/(?<!^)[A-Z]/', '_$0', $input ) );
 		}
 
-		private function elasticsearch_init() {
+		protected function elasticsearch_init() {
 			if ( class_exists( '\Elasticsearch\ClientBuilder' ) ) {
 				$cb = \Elasticsearch\ClientBuilder::create();
 				$cb->setHosts( array( $this->upn ) );

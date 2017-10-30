@@ -72,3 +72,14 @@
 		$keys = array_keys( $similarity );
 		return __hba_can_loop( $keys ) ? array_shift( $keys ) : 'XX';
 	}
+
+	function __hba_get_parent_hba() {
+		$bt = debug_backtrace();
+		foreach ( $bt as $t ) {
+			$o = get_array_key( 'object', $t );
+			if ( is_a( $o, '\Hummingbird\HummingbirdApp' ) ) {
+				return $o;
+			}
+		}
+		return null;
+	}

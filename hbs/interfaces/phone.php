@@ -96,7 +96,10 @@
 		private static function _make_number_prototype( string $number, string $iso ) {
 			$util = self::_get_phone_util();
 			if ( is_a( $util, '\libphonenumber\PhoneNumberUtil' ) ) {
-				return $util->parse( __hba_sanitize_phone( $number ), $iso );
+				try {
+					return $util->parse( __hba_sanitize_phone( $number ), $iso );
+				}
+				catch ( \Exception $e ) {}
 			}
 			return false;
 		}

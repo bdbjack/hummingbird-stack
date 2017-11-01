@@ -647,10 +647,10 @@
 			}
 			$this->__hba_current_route['method'] = $method;
 			$this->__hba_current_route['pattern'] = $fp;
-			$this->__hba_current_route['action'] = __hba_get_array_key( 'action', $r, '404' );
-			$this->__hba_current_route['authRequired'] = ( true == __hba_get_array_key( 'authRequired', $r, false ) );
-			$this->__hba_current_route['redirectAuthenticated'] = __hba_get_array_key( 'redirectAuthenticated', $r, false );
-			$this->__hba_current_route['title'] = __hba_get_array_key( 'title', $r, 'Unrecognized Request' );
+			$this->__hba_current_route['action'] = ( isset( $r ) ) ? __hba_get_array_key( 'action', $r, '404' ) : '404';
+			$this->__hba_current_route['authRequired'] = ( isset( $r ) ) ? ( true == __hba_get_array_key( 'authRequired', $r, false ) ) : false;
+			$this->__hba_current_route['redirectAuthenticated'] = ( isset( $r ) ) ? __hba_get_array_key( 'redirectAuthenticated', $r, false ) : false;
+			$this->__hba_current_route['title'] = ( isset( $r ) ) ? __hba_get_array_key( 'title', $r, 'Unrecognized Request' ) : 'Unrecognized Request';
 			$this->__hba_current_route['passthrough'] = $passthrough;
 			$this->__hba_current_route['query'] = $this->runRequestFunction( 'getQueryByMethod', $method );
 		}

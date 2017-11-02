@@ -101,6 +101,7 @@
 			}
 			$this->setConfig( $defaultConfig );
 			$this->addAction( 'init', array( $this, 'activateNewrelicTransaction' ), -1  );
+			$this->addAction( 'init', array( $this, 'activateTimezone' ) );
 			$this->addAction( 'init', array( $this, 'activateControllers' ) );
 			$this->addAction( 'initDatabases', array( $this, 'activateDatabaseControllers' ) );
 			$this->addAction( 'initCache', array( $this, 'activateCacheController' ) );
@@ -488,6 +489,10 @@
 			}
 			array_push( $this->__hbs_loaded_files, $composer_auto_loader );
 			require_once $composer_auto_loader;
+		}
+
+		private function activateTimezone() {
+			date_default_timezone_set( $this->getConfigSetting( 'application', 'timezone' ) );
 		}
 
 		private function activateControllers() {

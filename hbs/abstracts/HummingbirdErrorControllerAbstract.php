@@ -32,7 +32,7 @@
 			return $this->isCriticalError( $errno );
 		}
 
-		function handleException( \Exception $ex ) {
+		function handleException( $ex ) {
 			if ( ( version_compare( phpversion(), '7.0.0', '>' ) ) ) {
 				return $this->handlePHP7Exception( $ex );
 			}
@@ -43,7 +43,7 @@
 			return true;
 		}
 
-		function handlePHP7Exception( \Throwable $ex ) {
+		function handlePHP7Exception( $ex ) {
 			$msg = sprintf( 'Exception: %s', $ex->getMessage() );
 			$this->writeToLogFile( $msg );
 			$this->reportToNewRelic( $msg );

@@ -22,6 +22,10 @@
 			}
 			$this->mailer->SMTPKeepAlive = true;
 			$this->mailer = $this->hba->doFilter( 'phpmailer_init', $this->mailer );
+			if ( true == $hba->getConfigSetting( 'application', 'debug' ) ) {
+				$this->mailer->SMTPDebug = 2;
+				$this->mailer->Debugoutput = 'error_log';
+			}
 		}
 
 		function send( string $subject = '', string $body = '', string $altBody = '', string $sender = '', string $senderName = '', array $recipients = array(), array $cc = array(), $bcc = array(), array $attachments = array() ) {
@@ -75,7 +79,8 @@
 					}
 				}
 			}
-			return $mailer->send();
+			$send = $mailer->send();
+			return $send;
 		}
 
 		function __get( string $name ) {
@@ -100,5 +105,10 @@
 
 		static function __callStatic( string $name, array $arguments = array() ) {
 			return false;
+		}
+
+		function sendDebugOutputToLog( $str, $level ) {
+			$this->hba->runErrorFunction( 'writeToLogFile', sprintf( 'Email Debug Level %d Message: %s', $level, $str ) );
+			$this->hba->runErrorFunction( 'reportToNewRelic', sprintf( 'Email Debug Level %d Message: %s', $level, $str ) );
 		}
 	}

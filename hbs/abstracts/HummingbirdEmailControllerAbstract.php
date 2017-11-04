@@ -24,7 +24,7 @@
 			$this->mailer = $this->hba->doFilter( 'phpmailer_init', $this->mailer );
 			if ( true == $hba->getConfigSetting( 'application', 'debug' ) ) {
 				$this->mailer->SMTPDebug = 2;
-				$this->mailer->Debugoutput = 'error_log';
+				$this->mailer->Debugoutput = array( $this, 'sendDebugOutputToLog' );
 			}
 		}
 

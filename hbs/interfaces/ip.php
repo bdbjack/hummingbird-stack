@@ -74,6 +74,32 @@
 			return $this->get( 'address' );
 		}
 
+		function asArray() {
+			$return = array();
+			if ( __hba_can_loop( $this->_properties ) ) {
+				foreach ( $this->_properties as $key => $value ) {
+					$return[ $key ] = $value;
+				}
+			}
+			if ( __hba_can_loop( $this->_geo ) ) {
+				foreach ( $$this->_geo as $key => $value ) {
+					$return[ $key ] = $value;
+				}
+			}
+			return $return;
+		}
+
+		function asObject() {
+			$arr = $this->asArray();
+			$obj = new \stdClass();
+			if ( __hba_can_loop( $arr ) ) {
+				foreach ( $arr as $key => $value ) {
+					$obj->{$key} = $value;
+				}
+			}
+			return $obj;
+		}
+
 		public function __get( string $name ) {
 			if ( 'ip' == $name ) {
 				$name = 'address';

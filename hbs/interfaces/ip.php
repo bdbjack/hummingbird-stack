@@ -82,7 +82,7 @@
 				}
 			}
 			if ( __hba_can_loop( $this->_geo ) ) {
-				foreach ( $$this->_geo as $key => $value ) {
+				foreach ( $this->_geo as $key => $value ) {
 					$return[ $key ] = $value;
 				}
 			}

@@ -221,17 +221,24 @@
 					if ( is_numeric( $key ) ) {
 						$key = sprintf( 'item_%s', $key );
 					}
-					$this->makeXMLKeySafe( $key );
+					$ok = $key;
+					$key = $this->makeXMLKeySafe( $key );
 					if ( is_array( $value ) ) {
 						if ( __hba_beginning_matches( 'item_', $key ) ) {
 							$itemId = str_replace( 'item_', '', $key );
 							$key = 'item';
 							$subnode = $xml->addChild( $key );
 							$subnode->addAttribute( 'id', $itemId );
+							if ( $ok !== $key ) {
+								$subnode->addAttribute( 'value', $ok );
+							}
 							$this->array_to_xml( $value, $subnode );
 						}
 						else {
 							$subnode = $xml->addChild( $key );
+							if ( $ok !== $key ) {
+								$subnode->addAttribute( 'value', $ok );
+							}
 							$this->array_to_xml( $value, $subnode );
 						}
 					}
@@ -241,16 +248,22 @@
 							$key = 'item';
 							$child = $xml->addChild( $key, htmlspecialchars( $value ) );
 							$child->addAttribute( 'id', $itemId );
+							if ( $key !== $ok ) {
+								$child->addAttribute( 'value', $ok );
+							}
 						}
 						else {
 							$child = $xml->addChild( $key, htmlspecialchars( $value ) );
+							if ( $key !== $ok ) {
+								$child->addAttribute( 'value', $ok );
+							}
 						}
 					}
 				}
 			}
 		}
 
-		protected function makeXMLKeySafe( &$key ) {
+		protected function makeXMLKeySafe( $key ) {
 			$key = trim( $key );
 			if ( preg_match("/[^A-Za-z0-9_]/", $key ) ) {
 				$key = ucwords( $key );

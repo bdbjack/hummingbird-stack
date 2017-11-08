@@ -229,9 +229,6 @@
 							$key = 'item';
 							$subnode = $xml->addChild( $key );
 							$subnode->addAttribute( 'id', $itemId );
-							if ( $ok !== $key ) {
-								$subnode->addAttribute( 'value', $ok );
-							}
 							$this->array_to_xml( $value, $subnode );
 						}
 						else {
@@ -248,9 +245,6 @@
 							$key = 'item';
 							$child = $xml->addChild( $key, htmlspecialchars( $value ) );
 							$child->addAttribute( 'id', $itemId );
-							if ( $key !== $ok ) {
-								$child->addAttribute( 'value', $ok );
-							}
 						}
 						else {
 							$child = $xml->addChild( $key, htmlspecialchars( $value ) );

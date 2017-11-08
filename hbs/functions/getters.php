@@ -39,7 +39,7 @@
 		$ordered = array_keys( $liklihood );
 		foreach ( $ordered as $iso ) {
 			$cn = __hba_get_array_key( 'name', __hba_get_array_key( $iso, $__hba_countries, array() ), 'Unknown' );
-			if ( false !== strpos( strtolower( $cn ), strtolower( $name ) ) ) {
+			if ( ! __hba_is_empty( $cn ) && ! __hba_is_empty( $name ) && false !== strpos( strtolower( $cn ), strtolower( $name ) ) ) {
 				$liklihood[ $iso ] = $liklihood[$iso] + 0.5;
 			}
 		}

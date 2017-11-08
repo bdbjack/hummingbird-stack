@@ -67,3 +67,42 @@
 		}
 		return $input;
 	}
+
+	function __hba_sanitize_country( $input ) {
+		global $__hba_countries;
+		$iso2s = array();
+		$iso3s = array();
+		$names = array();
+		$return = 'XX';
+		## let's try to figure out what kind of input we have here.
+		## possible inputs are:
+		## iso2, iso3, name, and phone number
+		if ( can_loop( $__hba_countries ) ) {
+			foreach ( $__hba_countries as $iso => $info ) {
+				$iso2s[ $iso ] = get_array_key( 'iso', $info, 'XX' );
+				$iso3s[ get_array_key( 'iso3', $info, 'XXX' ) ] = get_array_key( 'iso', $info, 'XX' );
+				$iso3s[ get_array_key( 'name', $info, 'Anonymous' ) ] = get_array_key( 'iso', $info, 'XX' );
+			}
+		}
+		if ( strlen( $input ) == 2 && array_key_exists( strtoupper( $input ), $iso2s ) ) {
+			$return = get_array_key( strtoupper( $input ), $iso2s );
+		}
+		else if ( strlen( $input ) == 3 && array_key_exists( strtoupper( $input ), $iso3s ) ) {
+			$return = get_array_key( strtoupper( $input ), $iso3s );
+		}
+		else if ( array_key_exists( strtoupper( $input ), $names ) ) {
+			$return = get_array_key( strtoupper( $input ), $names );
+		}
+		else if ( preg_match( '/[a-zA-Z]/', $input ) > 0 ) {
+			$input = trim( preg_replace( '/[^a-zA-Z ,\\\']/', '', $input ) );
+			$return = __hba_get_country_info_by_name( $input );
+		}
+		else if ( preg_match( '/[0-9]/', $input ) > 0 ) {
+			$input = __hba_sanitize_phone( $input );
+			$return = __hba_guess_country_from_phone_number( $input );
+		}
+		if ( is_array( $return ) ) {
+			$return = get_array_key( 'iso', $return, 'XX' );
+		}
+		return $return;
+	}

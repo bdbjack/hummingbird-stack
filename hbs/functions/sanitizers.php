@@ -106,3 +106,11 @@
 		}
 		return $return;
 	}
+
+	function __hba_sanitize_ip( $input ) {
+		$ipo = new \Hummingbird\HummingbirdIPInterface( $input );
+		if ( true == $ipo->valid ) {
+			return $ipo->ip;
+		}
+		return null;
+	}

@@ -1,5 +1,8 @@
 <?php
 	function __hba_get_array_key( $key, $array = array(), $default = null ) {
+		if ( ! is_string( $key ) && ! is_integer( $key ) ) {
+			return $default;
+		}
 		return ( is_array( $array ) && array_key_exists( $key, $array ) ) ? $array[ $key ] : $default;
 	}
 

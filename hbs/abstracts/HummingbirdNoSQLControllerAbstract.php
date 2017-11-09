@@ -288,7 +288,19 @@
 		function wipe( $type ) {
 			switch ( $this->dbc->getParam( 'type' ) ) {
 				case 'elasticsearch':
-					$return = false;
+					// we're going to have to do some trickery to get this to work
+					$count = $this->count( $type, '' );
+					while ( $count > 0 ) {
+						$toRemove = $this->find( $type, array(
+							'query' => array(
+								'match_all' => new \stdClass(),
+							),
+							'size' => 500,
+						) );
+						$this->trashAll( $toRemove );
+						$count = $this->count( $type, '' );
+					}
+					return true;
 					break;
 
 				default:

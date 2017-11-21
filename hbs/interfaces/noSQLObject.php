@@ -28,7 +28,7 @@
 		}
 
 		function asObject() {
-			$return = new \stdClass();
+			$return = new \Hummingbird\noSQLDocument();
 			$return->index = $this->_index;
 			$return->type = $this->_type;
 			$return->id = $this->_id;
@@ -182,5 +182,16 @@
 
 		private static function removePrefixFromBeanType( $prefix, $type ) {
 			return substr( $type, strlen( $prefix ) );
+		}
+	}
+
+	class noSQLDocument {
+		function __get( string $name ) {
+			return __hba_get_object_property( $name, $this, null );
+		}
+
+		function __set( string $name, $value ) {
+			$this->{$name} = $value;
+			return true;
 		}
 	}

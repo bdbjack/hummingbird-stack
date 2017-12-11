@@ -11,6 +11,7 @@ namespace Twilio\Rest\Preview\HostedNumbers;
 
 use Twilio\InstanceContext;
 use Twilio\Options;
+use Twilio\Serialize;
 use Twilio\Values;
 use Twilio\Version;
 
@@ -29,9 +30,7 @@ class HostedNumberOrderContext extends InstanceContext {
         parent::__construct($version);
 
         // Path Solution
-        $this->solution = array(
-            'sid' => $sid,
-        );
+        $this->solution = array('sid' => $sid);
 
         $this->uri = '/HostedNumberOrders/' . rawurlencode($sid) . '';
     }
@@ -50,11 +49,7 @@ class HostedNumberOrderContext extends InstanceContext {
             $params
         );
 
-        return new HostedNumberOrderInstance(
-            $this->version,
-            $payload,
-            $this->solution['sid']
-        );
+        return new HostedNumberOrderInstance($this->version, $payload, $this->solution['sid']);
     }
 
     /**
@@ -79,7 +74,7 @@ class HostedNumberOrderContext extends InstanceContext {
             'FriendlyName' => $options['friendlyName'],
             'UniqueName' => $options['uniqueName'],
             'Email' => $options['email'],
-            'CcEmails' => $options['ccEmails'],
+            'CcEmails' => Serialize::map($options['ccEmails'], function($e) { return $e; }),
             'Status' => $options['status'],
             'VerificationCode' => $options['verificationCode'],
         ));
@@ -91,11 +86,7 @@ class HostedNumberOrderContext extends InstanceContext {
             $data
         );
 
-        return new HostedNumberOrderInstance(
-            $this->version,
-            $payload,
-            $this->solution['sid']
-        );
+        return new HostedNumberOrderInstance($this->version, $payload, $this->solution['sid']);
     }
 
     /**

@@ -592,7 +592,7 @@
 			) {
 				$ac = $this->getConfigSetting( 'authentication', 'controller' );
 				if ( ! __hba_is_instance_of( $ac, 'Hummingbird\HummingbirdAuthenticationControllerInterface' ) ) {
-					throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdSessionControllerInterface', $ac ), 1 );
+					throw new \Exception( sprintf( 'Class "%s" must implement Hummingbird\HummingbirdAuthenticationControllerInterface', $ac ), 1 );
 				}
 				$this->__hba_authentication_controller = new $ac( $this );
 			}

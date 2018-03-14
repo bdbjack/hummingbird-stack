@@ -11,7 +11,7 @@
 	 */
 
 	class HummingbirdApp {
-		private $version = '1.1.0';
+		private $version = '1.1.2';
 		private $baseDir = '';
 		private $hummbingbirdBaseDir = '';
 		private $baseUri = '';
@@ -795,7 +795,7 @@
 				'mbstring' => 'extension',
 				'intl' => 'extension',
 				'json' => 'extension',
-				'mcrypt' => 'extension',
+				//'mcrypt' => 'extension',
 				'SimpleXML' => 'extension',
 			);
 			$postLoadRequirements = array(

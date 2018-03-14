@@ -47,3 +47,5 @@ config.php
 /bin/*
 /templates/*
 /resources/*
+/hbs/composer/nbproject/private/
+/hbs/composer/vendor/

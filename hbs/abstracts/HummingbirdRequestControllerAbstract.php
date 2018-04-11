@@ -3,21 +3,21 @@
 
 	abstract class HummingbirdRequestControllerAbstract implements \Hummingbird\HummingbirdRequestControllerInterface {
 		protected  $hba;
-		private $_method = 'GET';
-		private $_protocol = 'HTTP/1.0';
-		private $_scheme = 'http';
-		private $_agent = '';
-		private $_get = array();
-		private $_post = array();
-		private $_put = array();
-		private $_delete = array();
-		private $_head = array();
-		private $_patch = array();
-		private $_cli = array();
-		private $_cookies = array();
-		private $__server = array();
-		private $__headers = array();
-		private $_ip;
+		protected $_method = 'GET';
+		protected $_protocol = 'HTTP/1.0';
+		protected $_scheme = 'http';
+		protected $_agent = '';
+		protected $_get = array();
+		protected $_post = array();
+		protected $_put = array();
+		protected $_delete = array();
+		protected $_head = array();
+		protected $_patch = array();
+		protected $_cli = array();
+		protected $_cookies = array();
+		protected $__server = array();
+		protected $__headers = array();
+		protected $_ip;
 
 		function __construct( \Hummingbird\HummingbirdApp $hba ) {
 			$this->hba = $hba;

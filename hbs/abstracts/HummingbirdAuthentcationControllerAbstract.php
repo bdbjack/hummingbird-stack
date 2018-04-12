@@ -170,11 +170,31 @@
 
 		protected function hashed_to( $val ) {
 			global $config;
-			return base64_encode( mcrypt_encrypt( MCRYPT_RIJNDAEL_256, substr( md5( $this->hba->getConfigSetting( 'application', 'name' ) ), 0, 16 ), $val, MCRYPT_MODE_ECB ) );
+			#return base64_encode( mcrypt_encrypt( MCRYPT_RIJNDAEL_256, substr( md5( $this->hba->getConfigSetting( 'application', 'name' ) ), 0, 16 ), $val, MCRYPT_MODE_ECB ) );
+			return $this->encrypt( $val, hash( 'sha256', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) ), 'AES-256-CBC' );
 		}
 
 		protected function hashed_from( $val ) {
 			global $config;
-			return trim( mcrypt_decrypt( MCRYPT_RIJNDAEL_256, substr( md5( $this->hba->getConfigSetting( 'application', 'name' ) ), 0, 16 ), base64_decode( $val ), MCRYPT_MODE_ECB ) );
+			#return trim( mcrypt_decrypt( MCRYPT_RIJNDAEL_256, substr( md5( $this->hba->getConfigSetting( 'application', 'name' ) ), 0, 16 ), base64_decode( $val ), MCRYPT_MODE_ECB ) );
+			return $this->decrypt( $val, hash( 'sha256', md5( $this->hba->getConfigSetting( 'application', 'name' ) ) ), 'AES-256-CBC' );
+		}
+		
+		function encrypt( $data, string $key, string $method ) {
+			$data = (string) $data;
+			$ivSize = openssl_cipher_iv_length($method);
+			$iv = openssl_random_pseudo_bytes($ivSize);
+			$encrypted = openssl_encrypt($data, $method, $key, OPENSSL_RAW_DATA, $iv);
+			$encrypted = base64_encode($iv . $encrypted);
+			return $encrypted;
+		}
+
+		function decrypt( $data, string $key, string $method ) {
+			$data = (string) $data;
+			$data = base64_decode($data);
+			$ivSize = openssl_cipher_iv_length($method);
+			$iv = substr($data, 0, $ivSize);
+			$data = openssl_decrypt(substr($data, $ivSize), $method, $key, OPENSSL_RAW_DATA, $iv);
+			return $data;
 		}
 	}

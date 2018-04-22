@@ -30,7 +30,7 @@
 
 		function read( string $sessionId ) {
 			$cacheKey = md5( sprintf( 'session_%s', $sessionId ) );
-			return $this->hba->runCacheFunction( 'get', $cacheKey );
+			return $this->hba->runCacheFunction( 'get', $cacheKey, '' );
 		}
 
 		function write( string $sessionId, string $sessionData ) {

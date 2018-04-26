@@ -395,7 +395,7 @@
 			$return = array();
 			foreach ( $this->__server as $key => $value ) {
 				if ( substr( strtoupper( $key ), 0, 5 ) == 'HTTP_' ) {
-					$key = substr( $key, 0, 5 );
+					$key = substr( $key, 5 );
 					$key = str_replace( '_', ' ', $key );
 					$key = ucwords( strtolower( $key ) );
 					$key = str_replace( ' ', '-', $key );

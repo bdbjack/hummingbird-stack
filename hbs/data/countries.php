@@ -1276,7 +1276,7 @@
 			'iso' => 'MC',
 			'name' => 'Monaco',
 			'iso3' => 'MCO',
-			'prefix' => '37797',
+			'prefix' => '377',
 			'defaultLang' => 'fr',
 			'nationality' => 'Monegasque/Monacan',
 			'currency' => 'USD',

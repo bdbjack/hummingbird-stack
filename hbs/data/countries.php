@@ -763,7 +763,7 @@
 			'iso' => 'GL',
 			'name' => 'Greenland',
 			'iso3' => 'GRL',
-			'prefix' => '2991',
+			'prefix' => '299',
 			'defaultLang' => 'en',
 			'nationality' => 'Greenlander',
 			'currency' => 'USD',
